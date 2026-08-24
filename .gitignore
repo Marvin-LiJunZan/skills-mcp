@@ -1,0 +1,32 @@
+# Environments & dependencies
+.venv/
+venv/
+env/
+ENV/
+*.env
+node_modules/
+
+# Python cache & build
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Binary & executable tools
+mcp/colmap-4.0.3/bin/
+*.exe
+*.dll
+
+# IDE / OS files
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+.vscode/
+.idea/

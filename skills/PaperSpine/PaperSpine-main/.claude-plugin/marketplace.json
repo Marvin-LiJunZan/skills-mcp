@@ -1,0 +1,28 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "paperspine-marketplace",
+  "description": "Marketplace manifest for the PaperSpine Claude Code plugin.",
+  "owner": {
+    "name": "WUBING2023",
+    "url": "https://github.com/WUBING2023"
+  },
+  "plugins": [
+    {
+      "name": "paper-spine",
+      "description": "Motivation-driven paper and report writing skill suite.",
+      "source": "./",
+      "version": "2.0.0-rc.2",
+      "category": "writing",
+      "homepage": "https://github.com/WUBING2023/PaperSpine",
+      "skills": [
+        "./skills/paper-spine",
+        "./skills/paper-spine-intake",
+        "./skills/paper-spine-research",
+        "./skills/paper-spine-rewrite",
+        "./skills/paper-spine-build",
+        "./skills/paper-spine-latex",
+        "./skills/paper-spine-audit"
+      ]
+    }
+  ]
+}
