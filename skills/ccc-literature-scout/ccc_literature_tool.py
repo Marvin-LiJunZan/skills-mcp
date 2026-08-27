@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-CCC Literature Scout & Bib-Introduction Synthesizer
-===================================================
-Automated multi-source academic literature search, Web of Science export parsing,
-clean BibTeX generation with abstracts, literature matrix analysis, and
-publication-grade LaTeX / Markdown Introduction drafting in English and Chinese.
+CCC Literature Scout & Introduction Synthesizer (V2.0 - Massive Scale)
+======================================================================
+Two-Stage Automated Academic Pipeline:
+- STAGE 1: Massively search per keyword (up to 1000 papers per keyword with full abstracts)
+           and export dedicated '<keyword>.bib' and '<keyword>_matrix.csv' files.
+- STAGE 2: Deep synthesis across all keyword bibs (deduplication, landmark ranking,
+           thematic clustering, timeline trends) and draft 5-stage publication-grade
+           LaTeX/Markdown Introduction with real citation anchors.
 
-Sources Supported:
-- OpenAlex API (250M+ papers, abstracts reconstructed from inverted index)
-- arXiv API (CS/AI/Physics/Math preprints with full abstracts)
-- Crossref API (Official DOI metadata & publisher records)
-- Web of Science / EndNote / RIS Parsers (CIW, TXT, ENW, BIB, RIS)
+Supported Engines:
+- Web of Science Clarivate API (Starter / Expanded API via WOS_API_KEY)
+- OpenAlex API (250M+ open catalog, paginated up to 1000+ items with full abstract reconstruction)
+- arXiv API (paginated CS/AI/Physics/Math preprints)
+- Crossref API (official DOIs & publisher metadata)
+- Campus Web of Science Export Ingestion (.ciw / .txt / .bib / .ris batch folder)
 """
 
 import os
@@ -173,20 +177,101 @@ class Paper:
 
 
 # ==============================================================================
-# Search & Fetch Engines
+# Search & Fetch Engines (Massive Pagination up to 1000)
 # ==============================================================================
 
+class WoSClarivateFetcher:
+    """Fetches papers directly from Clarivate Web of Science Starter/Expanded API."""
+    BASE_URL = "https://api.clarivate.com/apis/wos-starter/v1/documents"
+
+    @classmethod
+    def search(
+        cls,
+        query: str,
+        limit: int = 1000,
+        api_key: Optional[str] = None
+    ) -> List[Paper]:
+        key = api_key or os.environ.get("WOS_API_KEY")
+        if not key:
+            return []
+
+        papers = []
+        page = 1
+        per_page = 50  # Clarivate starter API limit per page
+
+        while len(papers) < limit:
+            params = {
+                "q": f"TS=({query})",
+                "limit": per_page,
+                "page": page
+            }
+            url = f"{cls.BASE_URL}?{urllib.parse.urlencode(params)}"
+            req = urllib.request.Request(
+                url,
+                headers={
+                    "X-ApiKey": key,
+                    "User-Agent": "CCC-WoS-Scout/2.0"
+                }
+            )
+
+            try:
+                with urllib.request.urlopen(req, timeout=20) as resp:
+                    data = json.loads(resp.read().decode("utf-8"))
+                    hits = data.get("hits", [])
+                    if not hits:
+                        break
+
+                    for doc in hits:
+                        title = doc.get("title", "")
+                        authors = [a.get("displayName", "") for a in doc.get("names", {}).get("authors", [])]
+                        pub = doc.get("publication", {})
+                        year = pub.get("year")
+                        journal = pub.get("sourceTitle", "")
+                        doi = doc.get("links", {}).get("doi", "")
+                        abstract = doc.get("abstract", "")
+                        cites = 0
+                        if doc.get("citations"):
+                            cites = doc["citations"][0].get("count", 0)
+
+                        papers.append(Paper(
+                            title=title,
+                            authors=authors,
+                            year=year,
+                            journal=journal,
+                            doi=doi,
+                            abstract=abstract,
+                            citations=cites,
+                            source="WebOfScience_API"
+                        ))
+
+                    if len(hits) < per_page or len(papers) >= limit:
+                        break
+                    page += 1
+                    time.sleep(0.2)
+            except Exception as e:
+                print(f"[WoS API] Error at page {page}: {e}", file=sys.stderr)
+                break
+
+        return papers[:limit]
+
+
 class OpenAlexFetcher:
-    """Fetches papers with full abstracts from OpenAlex API (250M+ open catalog)."""
+    """Fetches up to 1000 papers per keyword with full abstract reconstruction from OpenAlex (250M+ catalog)."""
     BASE_URL = "https://api.openalex.org/works"
 
     @classmethod
-    def search(cls, query: str, limit: int = 25, year_min: Optional[int] = None, year_max: Optional[int] = None) -> List[Paper]:
-        params = {
-            "search": query,
-            "per_page": min(limit, 50),
-            "sort": "relevance_score:desc"
-        }
+    def search(
+        cls,
+        query: str,
+        limit: int = 1000,
+        year_min: Optional[int] = None,
+        year_max: Optional[int] = None,
+        verbose: bool = True
+    ) -> List[Paper]:
+        papers = []
+        page = 1
+        per_page = 100  # Max per_page allowed by OpenAlex
+
         filters = []
         if year_min and year_max:
             filters.append(f"publication_year:{year_min}-{year_max}")
@@ -195,207 +280,254 @@ class OpenAlexFetcher:
         elif year_max:
             filters.append(f"publication_year:<{year_max + 1}")
 
-        if filters:
-            params["filter"] = ",".join(filters)
+        filter_str = ",".join(filters) if filters else ""
 
-        url = f"{cls.BASE_URL}?{urllib.parse.urlencode(params)}"
-        req = urllib.request.Request(
-            url,
-            headers={
-                "User-Agent": "mailto:academic-researcher@university.edu (CCC-Literature-Scout-Bot)"
+        while len(papers) < limit:
+            batch_size = min(per_page, limit - len(papers))
+            params = {
+                "search": query,
+                "per_page": batch_size,
+                "page": page,
+                "sort": "relevance_score:desc"
             }
-        )
+            if filter_str:
+                params["filter"] = filter_str
 
-        papers = []
-        try:
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-                for work in data.get("results", []):
-                    title = work.get("title") or ""
-                    if not title:
-                        continue
+            url = f"{cls.BASE_URL}?{urllib.parse.urlencode(params)}"
+            req = urllib.request.Request(
+                url,
+                headers={
+                    "User-Agent": "mailto:academic-researcher@university.edu (CCC-Literature-Scout-Bot)"
+                }
+            )
 
-                    authors = []
-                    for authorship in work.get("authorships", []):
-                        author_name = authorship.get("author", {}).get("display_name")
-                        if author_name:
-                            authors.append(author_name)
+            try:
+                with urllib.request.urlopen(req, timeout=20) as resp:
+                    data = json.loads(resp.read().decode("utf-8"))
+                    results = data.get("results", [])
+                    if not results:
+                        break
 
-                    year = work.get("publication_year")
+                    for work in results:
+                        title = work.get("title") or ""
+                        if not title:
+                            continue
+
+                        authors = []
+                        for authorship in work.get("authorships", []):
+                            author_name = authorship.get("author", {}).get("display_name")
+                            if author_name:
+                                authors.append(author_name)
+
+                        year = work.get("publication_year")
+                        
+                        primary_location = work.get("primary_location") or {}
+                        source_obj = primary_location.get("source") or {}
+                        journal = source_obj.get("display_name") or ""
+                        
+                        doi_raw = work.get("doi") or ""
+                        doi = doi_raw.replace("https://doi.org/", "").replace("http://doi.org/", "")
+                        
+                        abstract = ""
+                        inv_index = work.get("abstract_inverted_index")
+                        if inv_index:
+                            pos_dict = {}
+                            for word, pos_list in inv_index.items():
+                                for pos in pos_list:
+                                    pos_dict[pos] = word
+                            abstract = " ".join(pos_dict[k] for k in sorted(pos_dict.keys()))
+
+                        citations = work.get("cited_by_count", 0)
+                        oa_url = primary_location.get("landing_page_url") or primary_location.get("pdf_url") or doi_raw
+
+                        paper = Paper(
+                            title=title,
+                            authors=authors,
+                            year=year,
+                            journal=journal,
+                            doi=doi,
+                            abstract=abstract,
+                            url=oa_url,
+                            citations=citations,
+                            source="OpenAlex"
+                        )
+                        papers.append(paper)
+
+                    if verbose:
+                        print(f"        -> [OpenAlex] Page {page}: fetched {len(results)} items (Total: {len(papers)}/{limit})")
+
+                    if len(results) < batch_size or len(papers) >= limit:
+                        break
                     
-                    primary_location = work.get("primary_location") or {}
-                    source_obj = primary_location.get("source") or {}
-                    journal = source_obj.get("display_name") or ""
-                    
-                    doi_raw = work.get("doi") or ""
-                    doi = doi_raw.replace("https://doi.org/", "").replace("http://doi.org/", "")
-                    
-                    # Reconstruct inverted abstract
-                    abstract = ""
-                    inv_index = work.get("abstract_inverted_index")
-                    if inv_index:
-                        pos_dict = {}
-                        for word, pos_list in inv_index.items():
-                            for pos in pos_list:
-                                pos_dict[pos] = word
-                        abstract = " ".join(pos_dict[k] for k in sorted(pos_dict.keys()))
+                    page += 1
+                    time.sleep(0.1)  # Respect polite rate limit
+            except Exception as e:
+                if verbose:
+                    print(f"        [OpenAlex] Warning at page {page}: {e}", file=sys.stderr)
+                break
 
-                    citations = work.get("cited_by_count", 0)
-                    oa_url = primary_location.get("landing_page_url") or primary_location.get("pdf_url") or doi_raw
-
-                    paper = Paper(
-                        title=title,
-                        authors=authors,
-                        year=year,
-                        journal=journal,
-                        doi=doi,
-                        abstract=abstract,
-                        url=oa_url,
-                        citations=citations,
-                        source="OpenAlex"
-                    )
-                    papers.append(paper)
-        except Exception as e:
-            print(f"[OpenAlex] Warning querying '{query}': {e}", file=sys.stderr)
-
-        return papers
+        return papers[:limit]
 
 
 class ArxivFetcher:
-    """Fetches high-accuracy preprints with abstracts from arXiv API."""
+    """Fetches paginated preprints with abstracts from arXiv API."""
     BASE_URL = "http://export.arxiv.org/api/query"
 
     @classmethod
-    def search(cls, query: str, limit: int = 15) -> List[Paper]:
-        clean_query = query.replace(" ", "+")
-        url = f"{cls.BASE_URL}?search_query=all:{urllib.parse.quote(clean_query)}&start=0&max_results={limit}&sortBy=relevance&sortOrder=descending"
-        
+    def search(cls, query: str, limit: int = 100) -> List[Paper]:
         papers = []
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": "CCC-Literature-Scout-Bot"})
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                xml_data = resp.read()
-                root = ET.fromstring(xml_data)
-                
-                ns = {
-                    'atom': 'http://www.w3.org/2005/Atom',
-                    'arxiv': 'http://arxiv.org/schemas/atom'
-                }
-                
-                for entry in root.findall('atom:entry', ns):
-                    title_elem = entry.find('atom:title', ns)
-                    summary_elem = entry.find('atom:summary', ns)
-                    published_elem = entry.find('atom:published', ns)
-                    id_elem = entry.find('atom:id', ns)
-                    
-                    title = title_elem.text if title_elem is not None else ""
-                    abstract = summary_elem.text if summary_elem is not None else ""
-                    
-                    year = None
-                    if published_elem is not None and published_elem.text:
-                        year = int(published_elem.text[:4])
-                        
-                    url_str = id_elem.text if id_elem is not None else ""
-                    arxiv_id = url_str.split('/abs/')[-1] if '/abs/' in url_str else ""
-                    
-                    authors = []
-                    for author in entry.findall('atom:author', ns):
-                        name = author.find('atom:name', ns)
-                        if name is not None and name.text:
-                            authors.append(name.text)
-                            
-                    doi_elem = entry.find('arxiv:doi', ns)
-                    doi = doi_elem.text if doi_elem is not None else ""
-                    
-                    paper = Paper(
-                        title=title,
-                        authors=authors,
-                        year=year,
-                        journal=f"arXiv preprint arXiv:{arxiv_id}" if arxiv_id else "arXiv",
-                        doi=doi,
-                        abstract=abstract,
-                        url=url_str,
-                        citations=0,
-                        source="arXiv"
-                    )
-                    papers.append(paper)
-        except Exception as e:
-            print(f"[arXiv] Warning querying '{query}': {e}", file=sys.stderr)
+        start = 0
+        batch_size = 100
+
+        while len(papers) < limit:
+            cur_batch = min(batch_size, limit - len(papers))
+            clean_query = query.replace(" ", "+")
+            url = f"{cls.BASE_URL}?search_query=all:{urllib.parse.quote(clean_query)}&start={start}&max_results={cur_batch}&sortBy=relevance&sortOrder=descending"
             
-        return papers
+            try:
+                req = urllib.request.Request(url, headers={"User-Agent": "CCC-Literature-Scout-Bot"})
+                with urllib.request.urlopen(req, timeout=20) as resp:
+                    xml_data = resp.read()
+                    root = ET.fromstring(xml_data)
+                    
+                    ns = {'atom': 'http://www.w3.org/2005/Atom', 'arxiv': 'http://arxiv.org/schemas/atom'}
+                    entries = root.findall('atom:entry', ns)
+                    if not entries:
+                        break
+
+                    for entry in entries:
+                        title_elem = entry.find('atom:title', ns)
+                        summary_elem = entry.find('atom:summary', ns)
+                        published_elem = entry.find('atom:published', ns)
+                        id_elem = entry.find('atom:id', ns)
+                        
+                        title = title_elem.text if title_elem is not None else ""
+                        abstract = summary_elem.text if summary_elem is not None else ""
+                        
+                        year = None
+                        if published_elem is not None and published_elem.text:
+                            year = int(published_elem.text[:4])
+                            
+                        url_str = id_elem.text if id_elem is not None else ""
+                        arxiv_id = url_str.split('/abs/')[-1] if '/abs/' in url_str else ""
+                        
+                        authors = []
+                        for author in entry.findall('atom:author', ns):
+                            name = author.find('atom:name', ns)
+                            if name is not None and name.text:
+                                authors.append(name.text)
+                                
+                        doi_elem = entry.find('arxiv:doi', ns)
+                        doi = doi_elem.text if doi_elem is not None else ""
+                        
+                        papers.append(Paper(
+                            title=title,
+                            authors=authors,
+                            year=year,
+                            journal=f"arXiv preprint arXiv:{arxiv_id}" if arxiv_id else "arXiv",
+                            doi=doi,
+                            abstract=abstract,
+                            url=url_str,
+                            citations=0,
+                            source="arXiv"
+                        ))
+
+                    if len(entries) < cur_batch or len(papers) >= limit:
+                        break
+                    start += len(entries)
+                    time.sleep(0.3)
+            except Exception as e:
+                print(f"[arXiv] Warning at offset {start}: {e}", file=sys.stderr)
+                break
+
+        return papers[:limit]
 
 
 class CrossrefFetcher:
-    """Fetches official metadata & DOIs from Crossref API."""
+    """Fetches paginated records with DOIs and abstracts from Crossref API."""
     BASE_URL = "https://api.crossref.org/works"
 
     @classmethod
-    def search(cls, query: str, limit: int = 15) -> List[Paper]:
-        params = {
-            "query": query,
-            "rows": limit,
-            "sort": "relevance"
-        }
-        url = f"{cls.BASE_URL}?{urllib.parse.urlencode(params)}"
-        req = urllib.request.Request(url, headers={"User-Agent": "CCC-Literature-Scout (mailto:researcher@univ.edu)"})
-        
+    def search(cls, query: str, limit: int = 200) -> List[Paper]:
         papers = []
-        try:
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-                items = data.get("message", {}).get("items", [])
-                for item in items:
-                    title_list = item.get("title", [])
-                    title = title_list[0] if title_list else ""
-                    if not title:
-                        continue
-                        
-                    authors = []
-                    for a in item.get("author", []):
-                        given = a.get("given", "")
-                        family = a.get("family", "")
-                        if family:
-                            authors.append(f"{family}, {given}" if given else family)
-                            
-                    year = None
-                    date_parts = item.get("published-print", {}).get("date-parts") or item.get("published-online", {}).get("date-parts")
-                    if date_parts and date_parts[0]:
-                        year = date_parts[0][0]
-                        
-                    container = item.get("container-title", [])
-                    journal = container[0] if container else ""
-                    
-                    doi = item.get("DOI", "")
-                    abstract = item.get("abstract", "")
-                    if abstract:
-                        abstract = re.sub(r'<[^>]+>', '', abstract)
-                        
-                    citations = item.get("is-referenced-by-count", 0)
-                    volume = item.get("volume", "")
-                    number = item.get("issue", "")
-                    pages = item.get("page", "")
-                    publisher = item.get("publisher", "")
-                    
-                    paper = Paper(
-                        title=title,
-                        authors=authors,
-                        year=year,
-                        journal=journal,
-                        doi=doi,
-                        abstract=abstract,
-                        url=f"https://doi.org/{doi}" if doi else "",
-                        citations=citations,
-                        source="Crossref",
-                        volume=volume,
-                        number=number,
-                        pages=pages,
-                        publisher=publisher
-                    )
-                    papers.append(paper)
-        except Exception as e:
-            print(f"[Crossref] Warning querying '{query}': {e}", file=sys.stderr)
+        offset = 0
+        rows = 50
+
+        while len(papers) < limit:
+            cur_rows = min(rows, limit - len(papers))
+            params = {
+                "query": query,
+                "rows": cur_rows,
+                "offset": offset,
+                "sort": "relevance"
+            }
+            url = f"{cls.BASE_URL}?{urllib.parse.urlencode(params)}"
+            req = urllib.request.Request(url, headers={"User-Agent": "CCC-Literature-Scout (mailto:researcher@univ.edu)"})
             
-        return papers
+            try:
+                with urllib.request.urlopen(req, timeout=20) as resp:
+                    data = json.loads(resp.read().decode("utf-8"))
+                    items = data.get("message", {}).get("items", [])
+                    if not items:
+                        break
+
+                    for item in items:
+                        title_list = item.get("title", [])
+                        title = title_list[0] if title_list else ""
+                        if not title:
+                            continue
+                            
+                        authors = []
+                        for a in item.get("author", []):
+                            given = a.get("given", "")
+                            family = a.get("family", "")
+                            if family:
+                                authors.append(f"{family}, {given}" if given else family)
+                                
+                        year = None
+                        date_parts = item.get("published-print", {}).get("date-parts") or item.get("published-online", {}).get("date-parts")
+                        if date_parts and date_parts[0]:
+                            year = date_parts[0][0]
+                            
+                        container = item.get("container-title", [])
+                        journal = container[0] if container else ""
+                        
+                        doi = item.get("DOI", "")
+                        abstract = item.get("abstract", "")
+                        if abstract:
+                            abstract = re.sub(r'<[^>]+>', '', abstract)
+                            
+                        citations = item.get("is-referenced-by-count", 0)
+                        volume = item.get("volume", "")
+                        number = item.get("issue", "")
+                        pages = item.get("page", "")
+                        publisher = item.get("publisher", "")
+                        
+                        papers.append(Paper(
+                            title=title,
+                            authors=authors,
+                            year=year,
+                            journal=journal,
+                            doi=doi,
+                            abstract=abstract,
+                            url=f"https://doi.org/{doi}" if doi else "",
+                            citations=citations,
+                            source="Crossref",
+                            volume=volume,
+                            number=number,
+                            pages=pages,
+                            publisher=publisher
+                        ))
+
+                    if len(items) < cur_rows or len(papers) >= limit:
+                        break
+                    offset += len(items)
+                    time.sleep(0.2)
+            except Exception as e:
+                print(f"[Crossref] Warning at offset {offset}: {e}", file=sys.stderr)
+                break
+                
+        return papers[:limit]
 
 
 # ==============================================================================
@@ -421,6 +553,24 @@ class WoSParser:
             return cls.parse_bib(content)
         else:
             return cls.parse_wos_plain_or_ciw(content)
+
+    @classmethod
+    def parse_directory(cls, dirpath: str) -> List[Paper]:
+        """Parses all WoS export files in a directory."""
+        if not os.path.isdir(dirpath):
+            return []
+        all_papers = []
+        for root, _, files in os.walk(dirpath):
+            for file in files:
+                ext = os.path.splitext(file)[1].lower()
+                if ext in [".ciw", ".txt", ".bib", ".ris", ".enw"]:
+                    full_path = os.path.join(root, file)
+                    try:
+                        p_list = cls.parse_file(full_path)
+                        all_papers.extend(p_list)
+                    except Exception as e:
+                        print(f"Warning parsing {full_path}: {e}", file=sys.stderr)
+        return all_papers
 
     @classmethod
     def parse_wos_plain_or_ciw(cls, content: str) -> List[Paper]:
@@ -673,25 +823,25 @@ class LiteratureCorpus:
         sorted_years = sorted(year_counts.keys())
         
         sorted_by_cites = sorted(self.papers, key=lambda p: p.citations, reverse=True)
-        landmarks = sorted_by_cites[:min(8, total)]
+        landmarks = sorted_by_cites[:min(12, total)]
         
         current_year = max(years) if years else 2026
-        recent = [p for p in self.papers if p.year and p.year >= current_year - 2][:8]
+        recent = [p for p in self.papers if p.year and p.year >= current_year - 2][:12]
 
         report = []
         report.append(f"# Literature Synthesis Report: {topic or 'Academic Corpus'}")
-        report.append(f"\n- **Total Papers Collected**: {total}")
+        report.append(f"\n- **Total Papers in Unified Corpus**: {total}")
         report.append(f"- **Papers with Full Abstract**: {with_abstract} ({with_abstract/total*100:.1f}%)" if total else "- **Papers**: 0")
         report.append(f"- **Time Horizon**: {min(years) if years else 'N/A'} — {max(years) if years else 'N/A'}")
         
         report.append("\n## 1. Chronological Timeline & Publication Trend\n")
         report.append("| Year | Count | Key Milestones |")
         report.append("| :--- | :--- | :--- |")
-        for y in sorted_years[-10:]:
+        for y in sorted_years[-12:]:
             yr_papers = [p.bib_key for p in self.papers if p.year == y]
             report.append(f"| **{y}** | {year_counts[y]} papers | `\\cite{{{', '.join(yr_papers[:4])}}}` |")
 
-        report.append("\n## 2. Landmark & Foundational Works (High Impact)\n")
+        report.append("\n## 2. Landmark & Foundational Works (High Impact Ranking)\n")
         for i, p in enumerate(landmarks, 1):
             report.append(f"{i}. **{p.title}** ({p.year})")
             report.append(f"   - **Key**: `\\cite{{{p.bib_key}}}` | **Citations**: {p.citations} | **Venue**: *{p.journal}*")
@@ -699,7 +849,7 @@ class LiteratureCorpus:
                 report.append(f"   - *Summary*: {p.abstract[:220]}...")
             report.append("")
 
-        report.append("## 3. Emerging Frontier Papers (Recent Advances)\n")
+        report.append("## 3. Emerging Frontier Papers (Recent Advances 2024-2026)\n")
         for i, p in enumerate(recent, 1):
             report.append(f"{i}. **{p.title}** ({p.year}) — `\\cite{{{p.bib_key}}}`")
             report.append(f"   - *Venue*: *{p.journal}* | *Citations*: {p.citations}")
@@ -711,18 +861,13 @@ class LiteratureCorpus:
 
 
 # ==============================================================================
-# Academic 5-Stage Introduction Generator (English & Chinese)
+# Academic 5-Stage Introduction Generator
 # ==============================================================================
 
 class AcademicIntroGenerator:
     """
     Constructs a publication-grade LaTeX / Markdown Introduction following
-    the standard 5-part Nature / Elsevier / IEEE logic chain:
-    1. Broad Background & Practical Importance
-    2. Dominant Methodological Paradigms & Categorized SOTA
-    3. Fundamental Bottlenecks & Unresolved Research Gap
-    4. Proposed Solution & Key Theoretical/Algorithmic Insights
-    5. Core Technical Contributions & Article Structure
+    the standard 5-part Nature / Elsevier / IEEE logic chain.
     """
 
     @classmethod
@@ -742,8 +887,8 @@ class AcademicIntroGenerator:
 
         theme_groups = cls._cluster_papers(papers)
 
-        landmark_keys = [p.bib_key for p in sorted(papers, key=lambda x: x.citations, reverse=True)[:5]]
-        recent_keys = [p.bib_key for p in sorted(papers, key=lambda x: (x.year or 0), reverse=True)[:6]]
+        landmark_keys = [p.bib_key for p in sorted(papers, key=lambda x: x.citations, reverse=True)[:6]]
+        recent_keys = [p.bib_key for p in sorted(papers, key=lambda x: (x.year or 0), reverse=True)[:8]]
 
         advs = key_advantages or [
             "Achieving compact continuous representation without exponential memory explosion.",
@@ -761,7 +906,7 @@ class AcademicIntroGenerator:
         latex_lines = [
             f"% ==============================================================================",
             f"% Section 1: Introduction",
-            f"% Generated automatically by CCC Literature Scout",
+            f"% Generated automatically by CCC Literature Scout (Deep Multi-Keyword Synthesis)",
             f"% Topic: {topic}",
             f"% Target Journal Style: {target_journal}",
             f"% ==============================================================================\n",
@@ -789,7 +934,7 @@ class AcademicIntroGenerator:
         for group_name, group_papers in list(theme_groups.items())[:3]:
             grp_keys = [p.bib_key for p in group_papers[:4]]
             if grp_keys:
-                safe_group = cls._latex_escape(group_name.lower())
+                safe_group = Paper._latex_escape(group_name.lower())
                 p2_parts.append(
                     f"In the field of {safe_group}, seminal investigations \\cite{{{', '.join(grp_keys)}}} "
                     f"have demonstrated substantial progress in characterization and numerical modeling."
@@ -871,7 +1016,7 @@ class AcademicIntroGenerator:
         latex_lines = [
             f"% ==============================================================================",
             f"% 第一章：引言",
-            f"% CCC Literature Scout 自动构建",
+            f"% CCC Literature Scout 自动构建（多关键词大规模融合）",
             f"% 研究主题: {topic}",
             f"% ==============================================================================\n",
             r"\section{引言}",
@@ -892,7 +1037,7 @@ class AcademicIntroGenerator:
         for group_name, group_papers in list(theme_groups.items())[:3]:
             grp_keys = [p.bib_key for p in group_papers[:4]]
             if grp_keys:
-                safe_group = cls._latex_escape(group_name)
+                safe_group = Paper._latex_escape(group_name)
                 p2_parts.append(
                     f"在{safe_group}方面，经典研究 \\cite{{{', '.join(grp_keys)}}} "
                     f"在特征表征与数值模拟上取得了显著进展。"
@@ -983,81 +1128,166 @@ class AcademicIntroGenerator:
 
 
 # ==============================================================================
-# Full Pipeline Controller & CLI
+# Stage 1 & Stage 2 Execution Controllers
 # ==============================================================================
 
-def run_pipeline(
+def slugify_keyword(keyword: str) -> str:
+    slug = re.sub(r'[^a-zA-Z0-9\u4e00-\u9fa5]+', '_', keyword.strip()).strip('_')
+    return slug[:50] or "keyword"
+
+
+def stage1_fetch_keywords(
     keywords: List[str],
+    output_dir: str,
+    limit_per_kw: int = 1000,
+    wos_api_key: Optional[str] = None,
+    wos_dir: Optional[str] = None,
+    year_min: Optional[int] = None,
+    year_max: Optional[int] = None
+) -> List[str]:
+    """
+    STAGE 1: Executes massive-scale retrieval per keyword (up to 1000 papers each).
+    Outputs one dedicated '<slug>.bib' and '<slug>_matrix.csv' for each keyword.
+    Returns list of generated .bib file paths.
+    """
+    bib_dir = os.path.join(output_dir, "bib_by_keyword")
+    os.makedirs(bib_dir, exist_ok=True)
+    generated_bibs = []
+
+    print(f"\n{'='*75}")
+    print(f"📦 [STAGE 1] Massive Literature Retrieval (Limit: {limit_per_kw} papers/keyword)")
+    print(f"{'='*75}")
+    print(f"📂 Output Folder for Keyword Bibs: {bib_dir}")
+
+    # Check for Web of Science export directory if specified
+    wos_papers_pool = []
+    if wos_dir and os.path.isdir(wos_dir):
+        print(f"[*] Ingesting campus Web of Science directory: {wos_dir}...")
+        wos_papers_pool = WoSParser.parse_directory(wos_dir)
+        print(f"    Found {len(wos_papers_pool)} total papers in WoS export files.")
+
+    for i, kw in enumerate(keywords, 1):
+        slug = f"{i:02d}_{slugify_keyword(kw)}"
+        bib_file = os.path.join(bib_dir, f"{slug}.bib")
+        csv_file = os.path.join(bib_dir, f"{slug}_matrix.csv")
+        
+        print(f"\n[{i}/{len(keywords)}] 🔍 Fetching keyword: '{kw}' (Target: max {limit_per_kw} papers)...")
+        kw_corpus = LiteratureCorpus()
+
+        # 1. WoS API (if key available)
+        if wos_api_key or os.environ.get("WOS_API_KEY"):
+            print(f"      - Querying Web of Science Clarivate API...")
+            wos_api_results = WoSClarivateFetcher.search(kw, limit=limit_per_kw, api_key=wos_api_key)
+            added_wos = kw_corpus.add_papers(wos_api_results)
+            print(f"        -> WoS API: {len(wos_api_results)} records (Added {added_wos})")
+
+        # 2. WoS Directory matches
+        if wos_papers_pool:
+            matched_wos = [p for p in wos_papers_pool if kw.lower() in (p.title + " " + p.abstract).lower()]
+            added_pool = kw_corpus.add_papers(matched_wos)
+            if added_pool > 0:
+                print(f"        -> WoS Local Exports: Matched and added {added_pool} papers")
+
+        # 3. OpenAlex massive pagination (250M catalog)
+        needed = limit_per_kw - len(kw_corpus.papers)
+        if needed > 0:
+            print(f"      - Querying OpenAlex Catalog (paginating up to {needed} items)...")
+            oa_results = OpenAlexFetcher.search(kw, limit=needed, year_min=year_min, year_max=year_max, verbose=True)
+            added_oa = kw_corpus.add_papers(oa_results)
+            print(f"        -> OpenAlex: retrieved {len(oa_results)} works (Added {added_oa})")
+
+        # 4. arXiv supplement
+        needed = limit_per_kw - len(kw_corpus.papers)
+        if needed > 0:
+            arxiv_results = ArxivFetcher.search(kw, limit=min(100, needed))
+            added_arxiv = kw_corpus.add_papers(arxiv_results)
+            if added_arxiv > 0:
+                print(f"        -> arXiv: retrieved {len(arxiv_results)} preprints (Added {added_arxiv})")
+
+        # 5. Crossref supplement
+        needed = limit_per_kw - len(kw_corpus.papers)
+        if needed > 0:
+            cr_results = CrossrefFetcher.search(kw, limit=min(100, needed))
+            added_cr = kw_corpus.add_papers(cr_results)
+            if added_cr > 0:
+                print(f"        -> Crossref: retrieved {len(cr_results)} works (Added {added_cr})")
+
+        # Sort and export keyword bib
+        kw_corpus.sort_by("citations_desc")
+        kw_corpus.export_bibtex(bib_file)
+        kw_corpus.export_matrix_csv(csv_file)
+        generated_bibs.append(bib_file)
+
+        print(f"      ✅ Saved {len(kw_corpus.papers)} papers to: {os.path.basename(bib_file)}")
+        print(f"      ✅ Saved matrix to: {os.path.basename(csv_file)}")
+
+    print(f"\n🎉 [STAGE 1 COMPLETE] Generated {len(generated_bibs)} individual keyword BibTeX files.")
+    return generated_bibs
+
+
+def stage2_synthesize_introduction(
+    bib_sources: List[str],
     topic: str,
     output_dir: str,
-    limit_per_kw: int = 15,
-    wos_file: Optional[str] = None,
-    year_min: Optional[int] = None,
-    year_max: Optional[int] = None,
     method_name: str = "the proposed hierarchical implicit framework",
+    key_advantages: Optional[List[str]] = None,
     lang: str = "en"
 ):
+    """
+    STAGE 2: Merges and analyzes all keyword bib files, performs global deduplication,
+    builds the master literature matrix, and writes the 5-stage Introduction draft.
+    """
     os.makedirs(output_dir, exist_ok=True)
-    corpus = LiteratureCorpus()
+    master_corpus = LiteratureCorpus()
 
-    print(f"\n{'='*70}")
-    print(f"🚀 CCC Literature Scout & Introduction Synthesizer")
-    print(f"{'='*70}")
+    print(f"\n{'='*75}")
+    print(f"🧠 [STAGE 2] Deep Literature Synthesis & Academic Introduction Drafting")
+    print(f"{'='*75}")
     print(f"🎯 Target Topic: {topic}")
-    print(f"📂 Output Directory: {output_dir}")
     print(f"🌐 Language: {'Chinese (中文)' if lang == 'zh' else 'English'}")
 
-    # 1. Parse WoS export if provided
-    if wos_file:
-        print(f"\n[1/4] Ingesting Web of Science export: {wos_file}...")
-        wos_papers = WoSParser.parse_file(wos_file)
-        added = corpus.add_papers(wos_papers)
-        print(f"      Parsed {len(wos_papers)} entries, added {added} unique papers.")
+    # Ingest all bib files
+    total_raw_entries = 0
+    for b_path in bib_sources:
+        if os.path.isfile(b_path):
+            papers = WoSParser.parse_file(b_path)
+            total_raw_entries += len(papers)
+            master_corpus.add_papers(papers)
+        elif os.path.isdir(b_path):
+            papers = WoSParser.parse_directory(b_path)
+            total_raw_entries += len(papers)
+            master_corpus.add_papers(papers)
 
-    # 2. Automated Multi-Source Queries
-    print(f"\n[2/4] Executing multi-source literature queries for {len(keywords)} keywords...")
-    for i, kw in enumerate(keywords, 1):
-        print(f"      ({i}/{len(keywords)}) Searching: '{kw}'...")
-        oa_results = OpenAlexFetcher.search(kw, limit=limit_per_kw, year_min=year_min, year_max=year_max)
-        added_oa = corpus.add_papers(oa_results)
-        
-        arxiv_results = ArxivFetcher.search(kw, limit=min(8, limit_per_kw))
-        added_arxiv = corpus.add_papers(arxiv_results)
+    master_corpus.sort_by("citations_desc")
 
-        crossref_results = CrossrefFetcher.search(kw, limit=min(5, limit_per_kw))
-        added_cr = corpus.add_papers(crossref_results)
+    print(f"[*] Ingested {total_raw_entries} raw entries across all keyword Bibs.")
+    print(f"[*] Global Deduplication Result: {len(master_corpus.papers)} unique academic papers.")
 
-        print(f"          -> Found: {len(oa_results)} OpenAlex, {len(arxiv_results)} arXiv, {len(crossref_results)} Crossref (Total New: {added_oa + added_arxiv + added_cr})")
+    # Export master unified files
+    master_bib = os.path.join(output_dir, "master_unified_references.bib")
+    master_csv = os.path.join(output_dir, "master_literature_matrix.csv")
+    master_json = os.path.join(output_dir, "master_literature_corpus.json")
+    report_path = os.path.join(output_dir, "master_literature_synthesis.md")
 
-    corpus.sort_by("citations_desc")
-    print(f"\n[3/4] Deduplication & Corpus Finalization:")
-    print(f"      Total Unique Papers: {len(corpus.papers)}")
+    master_corpus.export_bibtex(master_bib)
+    master_corpus.export_matrix_csv(master_csv)
+    master_corpus.export_json(master_json)
 
-    # 3. Export BibTeX, CSV Matrix, and JSON
-    bib_path = os.path.join(output_dir, "references.bib")
-    csv_path = os.path.join(output_dir, "literature_matrix.csv")
-    json_path = os.path.join(output_dir, "literature_corpus.json")
-    report_path = os.path.join(output_dir, "literature_synthesis.md")
-
-    corpus.export_bibtex(bib_path)
-    corpus.export_matrix_csv(csv_path)
-    corpus.export_json(json_path)
-    
-    report_content = corpus.generate_synthesis_report(topic=topic)
+    synthesis_report = master_corpus.generate_synthesis_report(topic=topic)
     with open(report_path, "w", encoding="utf-8") as f:
-        f.write(report_content)
+        f.write(synthesis_report)
 
-    print(f"      ✅ BibTeX saved to: {bib_path}")
-    print(f"      ✅ Literature Matrix CSV: {csv_path}")
-    print(f"      ✅ Corpus JSON: {json_path}")
-    print(f"      ✅ Synthesis Report: {report_path}")
+    print(f"      ✅ Master Unified BibTeX ({len(master_corpus.papers)} entries): {master_bib}")
+    print(f"      ✅ Master Literature Matrix CSV: {master_csv}")
+    print(f"      ✅ Master Synthesis Report: {report_path}")
 
-    # 4. Generate 5-Stage Academic Introduction
-    print(f"\n[4/4] Generating 5-stage publication-grade Introduction ({lang})...")
+    # Draft 5-Stage Introduction
+    print(f"\n[*] Drafting 5-Stage Publication-Grade Introduction ({lang})...")
     drafts = AcademicIntroGenerator.generate(
-        corpus=corpus,
+        corpus=master_corpus,
         topic=topic,
         method_name=method_name,
+        key_advantages=key_advantages,
         lang=lang
     )
 
@@ -1069,93 +1299,117 @@ def run_pipeline(
     with open(md_path, "w", encoding="utf-8") as f:
         f.write(drafts["markdown"])
 
-    print(f"      ✅ LaTeX Introduction: {tex_path}")
-    print(f"      ✅ Markdown Introduction: {md_path}")
-    print(f"\n🎉 Pipeline complete! All artifacts ready in '{output_dir}'.\n")
+    print(f"      ✅ LaTeX Introduction (with real \\cite{{...}}): {tex_path}")
+    print(f"      ✅ Markdown Introduction Draft: {md_path}")
+    print(f"\n🎉 [STAGE 2 COMPLETE] All literature analysis & introduction drafts ready in '{output_dir}'.\n")
 
+
+def run_full_pipeline(
+    keywords: List[str],
+    topic: str,
+    output_dir: str,
+    limit_per_kw: int = 1000,
+    wos_api_key: Optional[str] = None,
+    wos_dir: Optional[str] = None,
+    year_min: Optional[int] = None,
+    year_max: Optional[int] = None,
+    method_name: str = "the proposed hierarchical implicit framework",
+    lang: str = "en"
+):
+    """Executes Stage 1 followed immediately by Stage 2."""
+    bib_files = stage1_fetch_keywords(
+        keywords=keywords,
+        output_dir=output_dir,
+        limit_per_kw=limit_per_kw,
+        wos_api_key=wos_api_key,
+        wos_dir=wos_dir,
+        year_min=year_min,
+        year_max=year_max
+    )
+
+    stage2_synthesize_introduction(
+        bib_sources=bib_files,
+        topic=topic,
+        output_dir=output_dir,
+        method_name=method_name,
+        lang=lang
+    )
+
+
+# ==============================================================================
+# CLI Entry Point
+# ==============================================================================
 
 def main():
     parser = argparse.ArgumentParser(
-        description="CCC Literature Scout: Automated Literature Search, BibTeX Builder with Abstracts, and Introduction Generator."
+        description="CCC Literature Scout V2: 2-Stage Massive Academic Retrieval (up to 1000 papers/kw) & Introduction Synthesizer."
     )
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+    subparsers = parser.add_subparsers(dest="command", help="Available execution modes")
 
-    p_pipe = subparsers.add_parser("pipeline", help="Run end-to-end literature retrieval and Introduction drafting.")
-    p_pipe.add_argument("--keywords", "-k", nargs="+", required=True, help="List of keyword phrases to search.")
-    p_pipe.add_argument("--topic", "-t", required=True, help="Main topic or title of the research paper.")
-    p_pipe.add_argument("--output-dir", "-o", default="./literature_out", help="Directory to save generated files.")
-    p_pipe.add_argument("--limit", "-l", type=int, default=15, help="Max results per keyword query.")
-    p_pipe.add_argument("--wos-file", "-w", default=None, help="Path to Web of Science export file (.ciw, .txt, .bib, .ris).")
-    p_pipe.add_argument("--year-min", type=int, default=None, help="Earliest publication year filter.")
-    p_pipe.add_argument("--year-max", type=int, default=None, help="Latest publication year filter.")
-    p_pipe.add_argument("--method-name", default="the proposed method", help="Name of your proposed algorithm/framework.")
-    p_pipe.add_argument("--lang", choices=["en", "zh"], default="en", help="Language for generated Introduction (en or zh).")
+    # Command: pipeline (Stage 1 + Stage 2)
+    p_pipe = subparsers.add_parser("pipeline", help="Run full 2-stage pipeline: fetch 1000 papers/keyword to separate bibs, then synthesize introduction.")
+    p_pipe.add_argument("--keywords", "-k", nargs="+", required=True, help="List of keyword phrases.")
+    p_pipe.add_argument("--topic", "-t", required=True, help="Paper research topic / title.")
+    p_pipe.add_argument("--output-dir", "-o", default="./literature_out", help="Root output directory.")
+    p_pipe.add_argument("--limit", "-l", type=int, default=1000, help="Max papers per keyword (default: 1000).")
+    p_pipe.add_argument("--wos-api-key", default=None, help="Clarivate Web of Science API Key.")
+    p_pipe.add_argument("--wos-dir", default=None, help="Directory containing campus Web of Science export files (.ciw, .txt, .bib).")
+    p_pipe.add_argument("--year-min", type=int, default=None, help="Earliest publication year.")
+    p_pipe.add_argument("--year-max", type=int, default=None, help="Latest publication year.")
+    p_pipe.add_argument("--method-name", default="the proposed hierarchical implicit framework", help="Proposed framework name.")
+    p_pipe.add_argument("--lang", choices=["en", "zh"], default="en", help="Language (en or zh).")
 
-    p_search = subparsers.add_parser("search", help="Search papers online and export BibTeX + CSV matrix.")
-    p_search.add_argument("--keywords", "-k", nargs="+", required=True, help="List of keyword phrases.")
-    p_search.add_argument("--output-dir", "-o", default="./literature_out", help="Output directory.")
-    p_search.add_argument("--limit", "-l", type=int, default=20, help="Max results per keyword.")
+    # Command: stage1-fetch
+    p_s1 = subparsers.add_parser("stage1-fetch", help="Stage 1 ONLY: Fetch up to 1000 papers per keyword and save one bib file per keyword.")
+    p_s1.add_argument("--keywords", "-k", nargs="+", required=True, help="List of keywords.")
+    p_s1.add_argument("--output-dir", "-o", default="./literature_out", help="Output directory.")
+    p_s1.add_argument("--limit", "-l", type=int, default=1000, help="Max papers per keyword (default: 1000).")
+    p_s1.add_argument("--wos-api-key", default=None, help="Clarivate API key.")
+    p_s1.add_argument("--wos-dir", default=None, help="Directory with WoS exports.")
+    p_s1.add_argument("--year-min", type=int, default=None, help="Earliest year.")
+    p_s1.add_argument("--year-max", type=int, default=None, help="Latest year.")
 
-    p_wos = subparsers.add_parser("parse-wos", help="Parse Web of Science / EndNote export files into clean BibTeX.")
-    p_wos.add_argument("--input", "-i", required=True, help="Input file path (.ciw, .txt, .bib, .ris).")
-    p_wos.add_argument("--output-dir", "-o", default="./literature_out", help="Output directory.")
-
-    p_intro = subparsers.add_parser("write-intro", help="Generate Introduction draft from existing .bib file.")
-    p_intro.add_argument("--bib", "-b", required=True, help="Input .bib file path.")
-    p_intro.add_argument("--topic", "-t", required=True, help="Paper research topic.")
-    p_intro.add_argument("--output-dir", "-o", default="./literature_out", help="Output directory.")
-    p_intro.add_argument("--method-name", default="the proposed method", help="Name of proposed method.")
-    p_intro.add_argument("--lang", choices=["en", "zh"], default="en", help="Language (en/zh).")
+    # Command: stage2-synthesize
+    p_s2 = subparsers.add_parser("stage2-synthesize", help="Stage 2 ONLY: Ingest all keyword bib files, synthesize corpus, and write Introduction.")
+    p_s2.add_argument("--bib-dir", "-b", required=True, help="Directory containing keyword .bib files, or path to specific .bib file.")
+    p_s2.add_argument("--topic", "-t", required=True, help="Research topic.")
+    p_s2.add_argument("--output-dir", "-o", default="./literature_out", help="Output directory.")
+    p_s2.add_argument("--method-name", default="the proposed hierarchical implicit framework", help="Proposed framework name.")
+    p_s2.add_argument("--lang", choices=["en", "zh"], default="en", help="Language (en or zh).")
 
     args = parser.parse_args()
 
     if args.command == "pipeline":
-        run_pipeline(
+        run_full_pipeline(
             keywords=args.keywords,
             topic=args.topic,
             output_dir=args.output_dir,
             limit_per_kw=args.limit,
-            wos_file=args.wos_file,
+            wos_api_key=args.wos_api_key,
+            wos_dir=args.wos_dir,
             year_min=args.year_min,
             year_max=args.year_max,
             method_name=args.method_name,
             lang=args.lang
         )
-    elif args.command == "search":
-        run_pipeline(
+    elif args.command == "stage1-fetch":
+        stage1_fetch_keywords(
             keywords=args.keywords,
-            topic="Academic Literature Search",
             output_dir=args.output_dir,
-            limit_per_kw=args.limit
+            limit_per_kw=args.limit,
+            wos_api_key=args.wos_api_key,
+            wos_dir=args.wos_dir,
+            year_min=args.year_min,
+            year_max=args.year_max
         )
-    elif args.command == "parse-wos":
-        corpus = LiteratureCorpus()
-        papers = WoSParser.parse_file(args.input)
-        corpus.add_papers(papers)
-        os.makedirs(args.output_dir, exist_ok=True)
-        bib_path = os.path.join(args.output_dir, "wos_references.bib")
-        csv_path = os.path.join(args.output_dir, "wos_matrix.csv")
-        corpus.export_bibtex(bib_path)
-        corpus.export_matrix_csv(csv_path)
-        print(f"Exported {len(papers)} papers to {bib_path} and {csv_path}")
-    elif args.command == "write-intro":
-        corpus = LiteratureCorpus()
-        papers = WoSParser.parse_file(args.bib)
-        corpus.add_papers(papers)
-        os.makedirs(args.output_dir, exist_ok=True)
-        drafts = AcademicIntroGenerator.generate(
-            corpus=corpus,
+    elif args.command == "stage2-synthesize":
+        stage2_synthesize_introduction(
+            bib_sources=[args.bib_dir],
             topic=args.topic,
+            output_dir=args.output_dir,
             method_name=args.method_name,
             lang=args.lang
         )
-        tex_path = os.path.join(args.output_dir, "introduction_draft.tex")
-        md_path = os.path.join(output_dir, "introduction_draft.md")
-        with open(tex_path, "w", encoding="utf-8") as f:
-            f.write(drafts["latex"])
-        with open(md_path, "w", encoding="utf-8") as f:
-            f.write(drafts["markdown"])
-        print(f"Generated Introduction to {tex_path} and {md_path}")
     else:
         parser.print_help()
 
