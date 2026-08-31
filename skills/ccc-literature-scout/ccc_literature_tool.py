@@ -191,7 +191,7 @@ class WoSClarivateFetcher:
         limit: int = 1000,
         api_key: Optional[str] = None
     ) -> List[Paper]:
-        key = api_key or os.environ.get("WOS_API_KEY")
+        key = api_key or os.environ.get("WOS_API_KEY") or "46a27738d76806c95a4a2797cdada4126ff8f800"
         if not key:
             return []
 
@@ -1174,10 +1174,11 @@ def stage1_fetch_keywords(
         print(f"\n[{i}/{len(keywords)}] 🔍 Fetching keyword: '{kw}' (Target: max {limit_per_kw} papers)...")
         kw_corpus = LiteratureCorpus()
 
-        # 1. WoS API (if key available)
-        if wos_api_key or os.environ.get("WOS_API_KEY"):
+        # 1. WoS API (Clarivate Starter API)
+        wos_key = wos_api_key or os.environ.get("WOS_API_KEY") or "46a27738d76806c95a4a2797cdada4126ff8f800"
+        if wos_key:
             print(f"      - Querying Web of Science Clarivate API...")
-            wos_api_results = WoSClarivateFetcher.search(kw, limit=limit_per_kw, api_key=wos_api_key)
+            wos_api_results = WoSClarivateFetcher.search(kw, limit=limit_per_kw, api_key=wos_key)
             added_wos = kw_corpus.add_papers(wos_api_results)
             print(f"        -> WoS API: {len(wos_api_results)} records (Added {added_wos})")
 
