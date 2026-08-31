@@ -30,3 +30,7 @@ Thumbs.db
 *.temp
 .vscode/
 .idea/
+
+# Private chats and transcripts
+chats/
+

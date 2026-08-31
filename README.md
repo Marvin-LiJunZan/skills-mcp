@@ -4,9 +4,8 @@ This repository contains a comprehensive collection of AI agent skills, Model Co
 
 ## 📁 Repository Structure
 
-- `skills/`: Collection of modular agent skills (e.g., Deep Research, Academic Paper & Writing, Figure Generation, Patent Tools, PPT Masters, etc.)
+- `skills/`: Collection of modular agent skills (e.g., Auto-Research-In-Sleep (ARIS), Deep Research, Academic Paper & Writing, Figure Generation, Patent Tools, PPT Masters, etc.)
 - `mcp/`: Collection of Model Context Protocol (MCP) servers (e.g., Abaqus, Academic Search, ArXiv, Paper Search, Semantic Scholar, etc.)
-- `chats/`: Reference conversation transcripts, logs, and prompt examples.
 
 ## 🚀 Quick Start
 
