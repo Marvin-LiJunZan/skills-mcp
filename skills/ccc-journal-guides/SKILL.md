@@ -1,13 +1,13 @@
 ---
 name: ccc-journal-guides
-description: Comprehensive Guide for Authors, submission specifications, and automated manuscript adaptation rules for premier journals in Intelligent Construction, Civil & Structural Engineering, Building Materials, and Advanced Materials/Defect Inspection (Automation in Construction, CACAIE, ADVEI, ASCE JCCE, Engineering Structures, Structures, Thin-Walled Structures, ASCE JSE, Construction and Building Materials, Cement and Concrete Composites, Cement and Concrete Research, Journal of Building Engineering, Materials & Design, JMPT, EAAI, NDT & E International).
+description: Comprehensive Guide for Authors, submission specifications, automated manuscript adaptation rules, and engineering narrative standards for premier journals in Intelligent Construction, Civil & Structural Engineering, Building Materials, and Advanced Materials/Defect Inspection (Automation in Construction, CACAIE, ADVEI, ASCE JCCE, Engineering Structures, Structures, Thin-Walled Structures, ASCE JSE, Construction and Building Materials, Cement and Concrete Composites, Cement and Concrete Research, Journal of Building Engineering, Materials & Design, JMPT, EAAI, NDT & E International). Enforces the Three Core Engineering Narrative Principles (plain engineering language over pretentious jargon, formulas strictly serving physical problems, and civil/structural reviewer-friendly titles, headings, and captions).
 ---
 
 # CCC Journal Guides & Automated Manuscript Adaptation Standards
 
-This skill provides verified, publication-grade **Guides for Authors** and an **Automated Manuscript Adaptation Protocol** for premier academic journals in **Intelligent Construction**, **Civil & Structural Engineering**, **Building Materials & Concrete**, and **Advanced Materials & Manufacturing/Inspection**.
+This skill provides verified, publication-grade **Guides for Authors**, an **Automated Manuscript Adaptation Protocol**, and **Engineering-First Writing Standards** for premier academic journals in **Intelligent Construction**, **Civil & Structural Engineering**, **Building Materials & Concrete**, and **Advanced Materials & Manufacturing/Inspection**.
 
-When authoring, revising, or re-targeting an academic paper (LaTeX or Markdown), this skill enables the agent to automatically reconfigure the manuscript to comply with the exact editorial philosophy, length budgets, citation style, and front/back-matter declarations of the target journal.
+When authoring, revising, or re-targeting an academic paper (LaTeX or Markdown), this skill enables the agent to automatically reconfigure the manuscript to comply with the exact editorial philosophy, length budgets, citation style, front/back-matter declarations, and rigorous engineering narrative standards of the target journal.
 
 ---
 
@@ -38,6 +38,8 @@ When authoring, revising, or re-targeting an academic paper (LaTeX or Markdown),
 
 Full-text, detailed guides covering specific editorial red lines, reviewer expectations, and submission instructions are indexed in `guides/`:
 
+- **Core Writing & Narrative Standards**:
+  - `guides/engineering-narrative-standards.md` *(The Three Iron Rules: plain language, problem-serving formulas, reviewer-friendly navigation)*
 - **Intelligent Construction**:
   - `guides/automation-in-construction.md`
   - `guides/computer-aided-civil-and-infrastructure-engineering.md`
@@ -145,9 +147,35 @@ The script automatically:
 
 ---
 
-## 5. Absolute Writing Quality Rule (Strict Zero-Listicle Policy)
+## 5. Engineering-First Academic Narrative Standards (土木与工程顶刊写作三大铁律)
+
+> [!IMPORTANT]
+> **三条不可动摇的写作标准（所有 AI 自动化生成/润色/修改论文时必须无条件执行）：**
+>
+> 1. **概念能用普通话讲清就不造术语 (Plain Language over Pretentious Jargon)**：
+>    - 严禁硬造浮夸复合词（如滥用 *gradient stiffness diagnosis*, *conflict-aware bounded allocation*, *spatiotemporal manifold harmonization* 等）。
+>    - 正文主线与摘要必须用质朴、精准的工程语言直接讲透本质。
+>    - **主线范例**：*“训练前先判断各损失项对参数更新的影响，再在限定范围内确定固定权重。”* (Prior to training, the impact of individual loss terms on parameter updates is evaluated to determine fixed weights within a bounded range.)
+>    - 算法生造词仅可降级作为局部方法细节的小括号注释，绝不能作为文章主线、摘要与标题的主语。
+>
+> 2. **公式只服务于问题，不为了“显得高级”堆符号 (Formulas Serve Problems, Not Pretentious Symbol-Stacking)**：
+>    - 每个数学公式必须严格对应具体的力学约束、物理定律或明确可执行的计算步骤。
+>    - 坚决杜绝无推导增量、纯粹堆砌冗余下标、花体符号与多层套娃式的伪形式化表达。
+>    - 每一个变量第一次出现时必须紧跟明确的物理单位与工程定义。
+>
+> 3. **章节标题、图题与摘要尽量让土木和工程审稿人一眼看懂 (Civil & Engineering Reviewer-Friendly Navigation)**：
+>    - 论文是面向土木、结构与材料工程领域的审稿人。
+>    - **主标题**：直奔“工程对象 + 解决什么物理问题 + 核心技术”，不堆砌黑话。
+>    - **摘要**：直球交代“工程痛点 $\rightarrow$ 直观方法 $\rightarrow$ 物理机制 $\rightarrow$ 量化结论”。
+>    - **章节名**：采用具象直白的工程与方法分类（如“2.3 损失权重边界确定方法”而非“2.3 基于梯度刚度诊断的时空约束优化架构”）。
+>    - **图题/表题**：第一句话必须给出结论性或清晰直观的描述，让审稿人扫一眼即明了物理含义。
+
+---
+
+## 6. Absolute Writing Quality Rule (Strict Zero-Listicle Policy)
 
 > [!CAUTION]
 > **STRICT ACADEMIC PROSE RULE (严禁“AI味”机械列点)**
 > - In all journals covered by this skill, the main body (Introduction, Methodology, Results, Discussion, Conclusion) must consist of **fluent, continuous academic paragraphs**.
 > - **Never** overuse bullet points (`itemize`) or numbered lists (`enumerate`) to describe contributions, bottlenecks, or experimental observations. Such listicle patterns are perceived by editors as superficial AI-generated text and lead to immediate rejection.
+

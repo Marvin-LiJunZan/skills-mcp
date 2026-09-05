@@ -157,3 +157,5 @@
 3. **AI Listicle Style**: Overusing bullet points, colon-lists, or mechanical enumerate sequences in the Introduction and Discussion.
 4. **Weak Physical / Field Validation**: Validating solely on synthetic or toy datasets without industrial-scale data or practical hardware runtime measurement.
 5. **Missing Standard Elsevier Declarations**: Omitting CRediT, Data Availability, or Competing Interest statements.
+6. **Pretentious AI Jargon & Formula Stacking (生造套话与虚浮符号堆砌)**: Inventing obscure buzzwords (e.g., *gradient stiffness diagnosis*, *conflict-aware bounded allocation*) instead of explaining mechanisms plainly (e.g., *evaluating loss gradient influences prior to training to establish fixed bounds*), which triggers strong skepticism from civil/construction engineering reviewers.
+

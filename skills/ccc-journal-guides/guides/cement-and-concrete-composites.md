@@ -59,7 +59,19 @@
 
 ---
 
-## 5. Citations, Reference Style & LaTeX Formatting
+## 5. Engineering Narrative & Anti-Jargon Rules (土木/建材顶刊三大铁律)
+
+1. **概念能用普通话讲清就不造术语**：
+   - 严禁硬造复合黑话（如 *gradient stiffness diagnosis*, *conflict-aware bounded allocation* 等）。
+   - 正文主线统一写成直白大白话（例如：“训练前先判断各损失项对参数更新的影响，再在限定范围内确定固定权重”）。
+2. **公式只服务于问题，不为了“显得高级”堆符号**：
+   - 每一个公式和符号必须对应具体的材料力学机制、本构方程或可计算步骤，拒绝伪数学化堆砌。
+3. **章节标题、图题与摘要必须让工程审稿人一眼看懂**：
+   - 杜绝计算机式生僻抽象词，用土木与建材专家习惯的具象工程语言命名各章节与图表。
+
+---
+
+## 6. Citations, Reference Style & LaTeX Formatting
 
 - **LaTeX Template**:
   ```latex
