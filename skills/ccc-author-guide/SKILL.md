@@ -14,7 +14,7 @@ This skill establishes the definitive formatting, technical screening, and autom
 A production-grade Python audit script is bundled with this skill at `scripts/audit_ccc_manuscript.py`. Whenever the user asks to "审核 CCC 论文格式" or "修改为 CCC 投稿要求", run this script first to generate an instant diagnostic report:
 
 ```powershell
-python "C:\Users\12830\.gemini\config\skills\ccc-author-guide\scripts\audit_ccc_manuscript.py" <path_to_paper.tex> [path_to_Highlights.txt]
+python ".\scripts\audit_ccc_manuscript.py" <path_to_paper.tex> [path_to_Highlights.txt]
 ```
 
 ### Checks Performed by the Script:
