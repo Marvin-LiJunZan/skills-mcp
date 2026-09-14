@@ -13,8 +13,18 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 TZ = timezone(timedelta(hours=8))
-ROOT = Path(r"C:\JunzanLi_project\skills_mcp")
-DEFAULT_OUTPUT = ROOT / "chats"
+SKILL_DIR = Path(__file__).resolve().parent.parent
+REPO_ROOT = SKILL_DIR.parent.parent
+USER_HOME = Path.home()
+
+
+def configured_path(name, default):
+    value = os.environ.get(name)
+    return Path(value).expanduser() if value else default
+
+
+APPDATA = configured_path("APPDATA", USER_HOME / "AppData" / "Roaming")
+DEFAULT_OUTPUT = Path.cwd() / "chats"
 MAX_TOOL_OUTPUT = 5000
 
 
@@ -77,7 +87,10 @@ def md_header(app, title, record_id, created, extra=None):
 
 
 def export_antigravity(output):
-    base = Path(r"C:\Users\12830\.gemini\antigravity\brain")
+    base = configured_path(
+        "ANTIGRAVITY_BRAIN_DIR",
+        USER_HOME / ".gemini" / "antigravity" / "brain",
+    )
     count = 0
     if not base.exists():
         return count
@@ -110,9 +123,10 @@ def export_antigravity(output):
 
 
 def export_codex(output):
-    roots = [Path(r"C:\Users\12830\.codex\sessions"), Path(r"C:\Users\12830\.codex\archived_sessions")]
+    codex_home = configured_path("CODEX_HOME", USER_HOME / ".codex")
+    roots = [codex_home / "sessions", codex_home / "archived_sessions"]
     titles = {}
-    index = Path(r"C:\Users\12830\.codex\session_index.jsonl")
+    index = codex_home / "session_index.jsonl"
     for row in read_jsonl(index) if index.is_file() else []:
         if row.get("id"):
             titles[row["id"]] = row.get("thread_name", "")
@@ -158,8 +172,19 @@ def export_codex(output):
 
 
 def export_deepseek(output):
-    chats = Path(r"C:\JunzanLi_project\skills_mcp\chats")
-    candidates = [chats / "conversations.json", *chats.glob("deepseek_data-*/conversations.json")]
+    chat_roots = []
+    configured_root = os.environ.get("DEEPSEEK_DATA_DIR")
+    if configured_root:
+        chat_roots.append(Path(configured_root).expanduser())
+    chat_roots.extend([Path.cwd() / "chats", REPO_ROOT / "chats", USER_HOME / "chats"])
+    candidates = []
+    seen = set()
+    for root in chat_roots:
+        root = root.resolve()
+        if root in seen:
+            continue
+        seen.add(root)
+        candidates.extend([root / "conversations.json", *root.glob("deepseek_data-*/conversations.json")])
     source = next((p for p in candidates if p.is_file()), None)
     if not source:
         return 0
@@ -192,7 +217,10 @@ def export_deepseek(output):
 
 
 def export_workbuddy(output):
-    db = Path(r"C:\Users\12830\AppData\Roaming\WorkBuddy\codebuddy-sessions.vscdb")
+    db = configured_path(
+        "WORKBUDDY_DB",
+        APPDATA / "WorkBuddy" / "codebuddy-sessions.vscdb",
+    )
     if not db.is_file():
         return 0
     count = 0
@@ -220,7 +248,10 @@ def export_workbuddy(output):
 
 
 def export_cursor(output):
-    base = Path(r"C:\Users\12830\AppData\Roaming\Cursor\User\workspaceStorage")
+    base = configured_path(
+        "CURSOR_WORKSPACE_STORAGE",
+        APPDATA / "Cursor" / "User" / "workspaceStorage",
+    )
     if not base.exists():
         return 0
     count = 0
