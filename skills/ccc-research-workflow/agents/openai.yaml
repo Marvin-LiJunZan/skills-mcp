@@ -1,0 +1,4 @@
+interface:
+  display_name: CCC Research Workflow
+  short_description: CCC research lifecycle and evidence-chain workflow
+  default_prompt: Coordinate this CCC-oriented computational research project from provenance and controlled experiments through audits, manuscript synchronization, and reproducible submission delivery.

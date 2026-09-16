@@ -86,6 +86,17 @@ HIGHLIGHT_YELLOW = "#FEC211"  # 专属特别高亮/趋势线/最优标注亮黄�
 
 ## 3. Bar Chart Aesthetics & Typography (柱状图设计与字体排版标准)
 
+### 3.1 No Decorative Callout Boxes (禁止装饰性圆角标签框)
+- 结论标注默认采用简短、无边框的文本，直接靠近对应数据点、柱顶或趋势线。
+- 禁止使用大面积圆角 `bbox`、彩色实心标签框或演示稿式气泡框；它们会遮挡数据并破坏论文图的视觉层级。
+- 如确实需要突出核心结论，只允许使用 CCC 亮黄色 `#FEC211` 的短文本、细线或小型箭头，且不能形成大块背景。
+- 默认不在图内添加额外结论 callout；关键结论应放在 caption 或正文中。只有用户明确要求时才加入短标签。
+
+### 3.2 Compact 3D Panel Labels (三维结构图面板标签简洁化)
+- 3D 结构对比图禁止在每个面板顶部堆叠长句式标题；结构本身必须是视觉主体。
+- 每个面板只保留底部居中的短标签，例如 `(a) Source`, `(b) Role-only`, `(c) Role + mechanics`, `(d) Final optimum`。
+- 网格、视角、尺度和色条在同一组面板中必须保持一致，避免标签和装饰元素分散读者注意力。
+
 - **Universal Typography (全图强制采用 Times New Roman 字体)**:
   - 图中所有文本（包括轴标题、刻度标签、图例、数据标注、高亮 Callout、子图题注）**必须统一采用 Times New Roman 字体**（`plt.rcParams['font.family'] = 'Times New Roman'`, `plt.rcParams['font.serif'] = ['Times New Roman', 'DejaVu Serif', 'serif']`，数学公式设置 `plt.rcParams['mathtext.fontset'] = 'stix'`）。
 - **Subpanel Captions Mandatory at Bottom Centered (多子图/组图题注 (a)/(b)/(c) 必须置于各子图正下方居中)**:
@@ -99,7 +110,7 @@ HIGHLIGHT_YELLOW = "#FEC211"  # 专属特别高亮/趋势线/最优标注亮黄�
 - **White Interior / Hollow Center (柱体留白/白底)**:
   - **Never** use heavy, dark solid block fills for bars.
   - Set `color='white'` (or very light pastel fill) with bold colored borders (`edgecolor=COLOR`, `linewidth=1.8~2.0`).
-  - Subtle academic hatch patterns (`hatch='//'`, `\\\\`, `..`).
+  - Subtle academic hatch patterns (`hatch='//'`, `\\\\`, `..`); **all bar hatch/fill lines must be white** (`hatch.color='white'`) so the pattern remains clean and consistent across CCC figures.
 - **Palette Coordination (同组配色一致)**:
   - Match bar border colors strictly to the line plots or scatter markers in adjacent panels within the same figure group.
 - **Universal Inward Tick Marks & Clean Boxed Spines (全图强制刻度线朝内、上/右边框刻度关闭规范)**:
@@ -231,5 +242,3 @@ HIGHLIGHT_YELLOW = "#FEC211"  # 专属特别高亮/趋势线/最优标注亮黄�
 
   fig.tight_layout(pad=0.3, h_pad=0.4, w_pad=0.3)
   ```
-
-

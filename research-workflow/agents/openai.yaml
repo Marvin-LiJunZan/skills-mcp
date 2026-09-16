@@ -1,0 +1,4 @@
+interface:
+  display_name: Research Workflow
+  short_description: Reproducible computational research workflow
+  default_prompt: Organize and audit this research project from evidence and data provenance through experiments, figures, manuscript synchronization, and reproducible delivery.

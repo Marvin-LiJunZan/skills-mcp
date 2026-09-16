@@ -51,7 +51,7 @@ A specialized academic skill for **large-scale literature retrieval (up to 1000 
 ## 🛠️ CLI Quick Start & Commands
 
 The tool is located at:
-`c:/JunzanLi_project/skills_mcp/skills/ccc-literature-scout/ccc_literature_tool.py`
+`skills/ccc-literature-scout/ccc_literature_tool.py`
 
 ### 1. Full End-to-End Pipeline (Stage 1 + Stage 2)
 
@@ -59,7 +59,7 @@ Downloads up to 1000 papers with abstracts for each keyword, exports separate ke
 
 ```bash
 # English journal mode (Elsevier / Nature / IEEE)
-python c:/JunzanLi_project/skills_mcp/skills/ccc-literature-scout/ccc_literature_tool.py pipeline \
+python skills/ccc-literature-scout/ccc_literature_tool.py pipeline \
   --keywords "implicit neural representations microstructure" "porous media transport permeability" "multigrid defect correction" \
   --topic "Implicit Neural Microstructure Representation for Multiscale Transport" \
   --method-name "the proposed hierarchical implicit framework" \
@@ -70,7 +70,7 @@ python c:/JunzanLi_project/skills_mcp/skills/ccc-literature-scout/ccc_literature
 
 ```bash
 # Chinese manuscript mode (中文期刊 / 博士论文引言)
-python c:/JunzanLi_project/skills_mcp/skills/ccc-literature-scout/ccc_literature_tool.py pipeline \
+python skills/ccc-literature-scout/ccc_literature_tool.py pipeline \
   --keywords "水泥基材料 微观结构 传输性能" "隐式神经表征 偏微分方程求解" \
   --topic "基于分层隐式神经表征的水泥基材料多尺度传输建模" \
   --method-name "分层隐式连续表征与缺陷修正物理求解器" \
@@ -82,7 +82,7 @@ python c:/JunzanLi_project/skills_mcp/skills/ccc-literature-scout/ccc_literature
 ### 2. Stage 1 ONLY: Batch Retrieval (1 Bib per Keyword)
 
 ```bash
-python c:/JunzanLi_project/skills_mcp/skills/ccc-literature-scout/ccc_literature_tool.py stage1-fetch \
+python skills/ccc-literature-scout/ccc_literature_tool.py stage1-fetch \
   --keywords "deep learning fluid dynamics" "physics informed neural networks" \
   --limit 1000 \
   --output-dir ./stage1_data
@@ -91,7 +91,7 @@ python c:/JunzanLi_project/skills_mcp/skills/ccc-literature-scout/ccc_literature
 ### 3. Stage 2 ONLY: Synthesize Existing `.bib` Directory into Introduction
 
 ```bash
-python c:/JunzanLi_project/skills_mcp/skills/ccc-literature-scout/ccc_literature_tool.py stage2-synthesize \
+python skills/ccc-literature-scout/ccc_literature_tool.py stage2-synthesize \
   --bib-dir ./stage1_data/bib_by_keyword \
   --topic "Physics-informed neural networks for fluid dynamics" \
   --method-name "our conservative PINN architecture" \
