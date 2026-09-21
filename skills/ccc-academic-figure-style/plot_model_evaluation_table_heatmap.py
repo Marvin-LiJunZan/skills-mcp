@@ -26,17 +26,20 @@ plt.rcParams['ps.fonttype'] = 42
 plt.rcParams['xtick.top'] = False
 plt.rcParams['ytick.right'] = False
 
-# Colormap matching publication standard: pure white / very soft light cyan to vivid cyan (#00ACC1 / #00BCD4)
-CYAN_CMAP = LinearSegmentedColormap.from_list(
-    'ccc_eval_cyan',
-    ['#FFFFFF', '#E0F7FA', '#B2EBF2', '#4DD0E1', '#26C6DA', '#00BCD4', '#00ACC1'],
+# --- CCC Mandatory Academic Color Palette ---
+# Colormap: CCC Sapphire Blue gradient (from pure white / light ice blue to deep sapphire blue #2F6AB9)
+CCC_BLUE_CMAP = LinearSegmentedColormap.from_list(
+    'ccc_eval_blue',
+    ['#FFFFFF', '#F0F6FC', '#CFE2F7', '#97C6E6', '#69AADB', '#3B7FC4', '#2F6AB9'],
     N=256
 )
 
-HEADER_BG = '#00897B'         # Dark teal header background
+HEADER_BG = '#1F4E79'         # CCC Deep Academic Sapphire Navy for headers
 CELL_EDGE = '#FFFFFF'         # Crisp white separator between cells
-BEST_TEXT_COLOR = '#D32F2F'   # Bold red for best Test R2
+BEST_TEXT_COLOR = '#E63939'   # CCC Crimson Red (#E63939) for best Test R2
+HIGHLIGHT_YELLOW = '#FEC211'  # CCC Signature Bright Yellow (#FEC211) for optimal highlight
 NORMAL_TEXT_COLOR = '#0F172A' # Deep slate black for numbers
+
 
 def plot_evaluation_heatmap_table(models_data, output_path="model_evaluation_heatmap_table.png", title_caption=None):
     """
@@ -86,7 +89,8 @@ def plot_evaluation_heatmap_table(models_data, output_path="model_evaluation_hea
         else:
             score = 1.0 - (val - v_min) / (v_max - v_min + 1e-9)
         score = np.clip(score * 0.82, 0.02, 0.85)
-        return CYAN_CMAP(score)
+        return CCC_BLUE_CMAP(score)
+
 
     cell_w = 0.95
     label_w = 2.45
@@ -174,6 +178,12 @@ def plot_evaluation_heatmap_table(models_data, output_path="model_evaluation_hea
             txt_color = BEST_TEXT_COLOR if is_best_r2 else NORMAL_TEXT_COLOR
             fweight = 'bold' if is_best_r2 else 'normal'
             
+            if is_best_r2:
+                # Add CCC signature golden yellow outline on best cell
+                best_box = patches.Rectangle((x, cur_y), cell_w, row_h,
+                                             fill=False, edgecolor=HIGHLIGHT_YELLOW, linewidth=1.8, zorder=4)
+                ax.add_patch(best_box)
+            
             if m == 'R2':
                 val_txt = f"{val:.3f}" if val < 0.999 else "1.00"
             elif m == 'MAPE':
@@ -195,9 +205,10 @@ def plot_evaluation_heatmap_table(models_data, output_path="model_evaluation_hea
     
     def draw_gradient_bar(x, y, w, h, left_composite_label, ideal_txt, show_ideal_title=False):
         grad = np.linspace(0.02, 0.85, 256).reshape(1, -1)
-        ax.imshow(grad, extent=[x, x + w, y, y + h], aspect='auto', cmap=CYAN_CMAP, zorder=2)
+        ax.imshow(grad, extent=[x, x + w, y, y + h], aspect='auto', cmap=CCC_BLUE_CMAP, zorder=2)
         rect = patches.Rectangle((x, y), w, h, fill=False, edgecolor='#333333', linewidth=0.8, zorder=3)
         ax.add_patch(rect)
+
         
         ax.text(x - 0.08, y + h / 2.0, left_composite_label, ha='right', va='center',
                 fontsize=9.8, fontfamily='Times New Roman', color='#0F172A')

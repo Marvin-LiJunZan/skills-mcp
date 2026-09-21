@@ -314,14 +314,15 @@ HIGHLIGHT_YELLOW = "#FEC211"  # 专属特别高亮/趋势线/最优标注亮黄�
 - **适用场景**：多预测模型在多任务（如抗压强度、流动度）与双数据集（Train vs Test）下四大核心指标（MAE, RMSE, MAPE, $R^2$）的紧凑矩阵热图展示。
 - **设计标准**：
   - 双板块布局：左侧为 `Train` 集合，右侧为 `Test` 集合，板块间留有微空白间隔。
-  - 表头深青绿色底色（`#00897B`），白色加粗字标（`MAE`, `RMSE`, `MAPE`, $\mathbf{R^2}$）。
-  - 单元格纯白细边框分隔（`linewidth=1.2`），内部填充连续青色渐变（`CYAN_CMAP`），颜色深浅直观对应指标向“理想值（ideal value）”的收敛程度（误差类指标越接近0越深，$R^2$越接近1越深）。
-  - 测试集最优决定系数 $R^2$ 强制以粗体红色字体（`#D32F2F`）高亮醒目标出。
-  - 底部图例栏：4 根并排水平渐变色标条（MAE, RMSE, MAPE, $R^2$），右端理想值对齐并在上方清晰标注 `ideal value`。
+  - 表头采用 CCC 深海蓝底色（`#1F4E79`），白色加粗字标（`MAE`, `RMSE`, `MAPE`, $\mathbf{R^2}$），稳重大气。
+  - 单元格纯白细边框分隔（`linewidth=1.2`），内部填充 CCC 经典深海蓝-冰蓝连续渐变色阶（`#FFFFFF` $\rightarrow$ `#CFE2F7` $\rightarrow$ `#2F6AB9`），颜色深浅直观对应指标向“理想值（ideal value）”的收敛程度（误差类指标越接近0越深，$R^2$越接近1越深）。
+  - 测试集最优决定系数 $R^2$ 强制以 CCC 绯红加粗字体（`#E63939`）结合 CCC 专属标志性亮黄色边框（`#FEC211`, `linewidth=1.8`）高亮醒目标出。
+  - 底部图例栏：4 根并排水平渐变色标条（MAE, RMSE, MAPE, $R^2$）同步采用 CCC 深海蓝渐变，右端理想值对齐并在上方清晰标注 `ideal value`。
 - **运行命令**：
   ```bash
   python plot_model_evaluation_table_heatmap.py
   ```
+
 
 ### 7.7 Multilevel Parallel Categories Alluvial Sankey Diagram (`plot_parallel_categories_sankey_ccc.py`)
 - **适用场景**：多阶段配比参数与多目标性能之间的流向演化、多层级分类归属、帕累托解集（Pareto Front）物理权衡可视化。
@@ -377,17 +378,17 @@ HIGHLIGHT_YELLOW = "#FEC211"  # 专属特别高亮/趋势线/最优标注亮黄�
 ### 7.11 Joint Parity Plot with Marginal Distributions & Golden Drop Shadow (`plot_parity_with_marginal_distributions.py`)
 - **适用场景**：机器学习与深度学习回归模型 1:1 对角预测拟合分析（Parity / Actual vs Predicted Plot），兼顾检验模型在全域尺度上的数据分布保持性与边缘概率密度（Marginal Density Fidelity）。
 - **设计标准**：
-  - **色彩阶次降低与明度校准**：摒弃沉闷深红与厚重深蓝，采用柔和、清爽的高对比顶刊学术色标——训练集采用活力珊瑚朱红（`#E53935`），测试集采用清亮青海蓝（`#0097A7`）。
-  - **图例右下角金黄立体投影（3D Golden Drop Shadow）**：
+  - **CCC 经典红蓝配色与明度校准**：严格遵循 CCC 标准红蓝系统——训练集采用经典绯红（`#E63939`），测试集采用皇家深海蓝（`#2F6AB9`）。
+  - **图例右下角 CCC 专属亮黄立体投影（3D Bright Yellow Drop Shadow）**：
     - 图例框采用纯白底色（`facecolor='white'`）加极细黑边框（`edgecolor='#222222'`, `linewidth=1.05`）。
-    - 采用 `matplotlib.patheffects.SimplePatchShadow(offset=(2.8, -2.8), shadow_rgbFace='#FFA000', alpha=1.0)` 向右下方投射平实锐利的金黄亮色阴影，带来精致立体的科技感与视觉聚焦。
+    - 采用 `matplotlib.patheffects.SimplePatchShadow(offset=(2.8, -2.8), shadow_rgbFace='#FEC211', alpha=1.0)` 向右下方投射平实锐利的 CCC 标志性亮黄色阴影（`#FEC211`），带来精致立体的科技感与视觉聚焦。
   - **顶部与右侧双向边际分布轴（Marginal Density Axes）**：
     - 顶部边际轴：展示实验实测真值（Experimental ground truth）的概率密度分布曲线（KDE，`alpha=0.18` 轻薄透明羽化填充，红蓝双峰对比）。
     - 右侧边际轴：旋转展示模型预测值（Predicted values）的纵向概率密度分布曲线（KDE，`alpha=0.18` 轻薄透明羽化填充）。
     - 边际轴外边框全部去除（`despine`），仅保留与主坐标轴交界的细分界线，无刻度文字冗余干扰。
   - **中心主散点区域**：
     - 黑色主对角线（$y=x$），细虚线标注 $\pm 15\%$ 误差包络带，并在图例中动态统计容限内样本占比（如 `70.8% points included`）。
-    - 训练集空心圆圈（`edgecolors='#E53935'`），测试集空心正方形（`edgecolors='#0097A7'`, `marker='s'`）。
+    - 训练集空心圆圈（`edgecolors='#E63939'`），测试集空心正方形（`edgecolors='#2F6AB9'`, `marker='s'`）。
     - 严格 Times New Roman 字体、全内向精致刻度、无顶部与右侧刻度。
 - **运行命令**：
   ```bash

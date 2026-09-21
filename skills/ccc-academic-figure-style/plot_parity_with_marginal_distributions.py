@@ -34,10 +34,11 @@ plt.rcParams['ytick.direction'] = 'in'
 plt.rcParams['xtick.top'] = False
 plt.rcParams['ytick.right'] = False
 
-# Calibrated modern colors
-COLOR_TRAIN = '#E53935'   # Crisp coral vermilion red
-COLOR_TEST = '#0097A7'    # Fresh cyan ocean blue
-SHADOW_YELLOW = '#FFA000' # Golden amber drop shadow
+# CCC Calibrated Red-Blue Palette & Signature Bright Yellow Shadow
+COLOR_TRAIN = '#E63939'   # CCC Classic Crimson / Red (Training set)
+COLOR_TEST = '#2F6AB9'    # CCC Classic Sapphire Blue (Test set)
+SHADOW_YELLOW = '#FEC211' # CCC Signature Bright Yellow (#FEC211)
+
 
 def generate_synthetic_parity_data(n_train=480, n_test=120):
     """Generates synthetic parity predictions for demonstration."""
