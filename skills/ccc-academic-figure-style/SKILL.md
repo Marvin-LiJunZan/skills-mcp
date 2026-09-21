@@ -334,3 +334,43 @@ HIGHLIGHT_YELLOW = "#FEC211"  # 专属特别高亮/趋势线/最优标注亮黄�
   ```bash
   python plot_parallel_categories_sankey_ccc.py
   ```
+
+### 7.8 6-Panel Composite Material and Property Distribution Plot (`plot_six_panel_material_distribution.py`)
+- **适用场景**：复合胶凝材料/无机灌浆材料多组分原材料分布与多目标力学/工作性演化复合多面板展示（Nature/Elsevier 顶刊经典 6 面板全景）。
+- **设计标准**：
+  - (a) 宏观水胶比与砂胶比：提琴图（Violin）+ 箱线图（Boxplot，白色底色，中位数深红粗线）+ 左侧抖动散点（Jittered Scatter）。
+  - (b) 基础胶凝基质（硅酸盐水泥占比 wt%）：连续核密度估计曲线（KDE，浅蓝柔和半透填充）+ 底部红竖线 Rug 地毯标记。
+  - (c) 微量化学外加剂（减水剂 PCE、消泡剂 Defoamer、稳泡/增稠剂 VMA）：抖动离散点阵 + 均值及标准差红色菱形误差棒（Mean $\pm$ SD）。
+  - (d) 地质聚合物前驱体与矿物掺合料（粉煤灰 FA、矿渣 GGBS、硅灰 SF）：同轴重叠透明直方图（Histograms），清晰展现正偏态掺量级配。
+  - (e) 多龄期力学强度演化（1d, 3d, 7d, 28d）：4 龄期连续半透明提琴图 + 紧凑箱线 + 数据散点。
+  - (f) 新拌工作性流动度分布：柱状图 + KDE 拟合平滑线 + 红色中位数虚线（如 `Median: 307 mm`）+ 金黄色工程设计目标基准虚线（如 `Target: 300 mm`）。
+  - 严格 Times New Roman 字体，全内向刻度线，无上方及右侧刻度。
+- **运行命令**：
+  ```bash
+  python plot_six_panel_material_distribution.py --output distribution_6panel_standard
+  ```
+
+### 7.9 Bivariate 2D Partial Dependence Interaction Surfaces (`plot_bivariate_2d_pdp_interaction.py`)
+- **适用场景**：机器学习黑盒解释性、特征交叉物理交互效应、双参数非线性耦合响应面分析（如龄期与水胶比、水胶比与砂胶比、减水剂与消泡剂）。
+- **设计标准**：
+  - CCC 专属红蓝发散色图（`#2F6AB9` 深蓝 -> `#EAECEF` 极浅灰白中性色 -> `#E63939` 绯红极值），色阶过渡平滑细腻（22 等高阶层）。
+  - 清晰白色等高线网络（`linewidth=0.85`, `alpha=0.90`）搭配白色内嵌数值高程标签（`clabel`）。
+  - 每个子图右侧独立紧贴对齐的纵向 Colorbar（`size="5.5%"`, `pad=0.08`），刻度文字严格采用 Times New Roman 并使用内向刻度线。
+  - 彻底杜绝顶部与右侧刻度冗余（`top=False`, `right=False`）。
+- **运行命令**：
+  ```bash
+  python plot_bivariate_2d_pdp_interaction.py --output pdp_2d_bivariate_standard
+  ```
+
+### 7.10 CCC Red-Blue Diverging Correlation Heatmap (`plot_correlation_matrix_ccc.py`)
+- **适用场景**：多输入特征与多输出目标之间的皮尔逊/斯皮尔曼相关性矩阵分析，或双数据集（如强度数据集 vs 流动度数据集）对角线上下三角矩阵拼合（Split Diagonal Triangle Matrix）。
+- **设计标准**：
+  - 严格采用 CCC 专属红蓝发散渐变色谱（负相关深蓝 `#3172B7` -> 零相关中性灰白 `#EAECEF` -> 正相关艳红 `#E63939`）。
+  - 单元格之间配置高清晰白色网格实线隔离带（`linewidth=1.8`），网格层次立体。
+  - 单元格数值根据背景颜色自适应深浅文本对比（高绝对值区域白字，接近零区域深灰字），显著高相关加粗。
+  - 严格 Times New Roman 字体、倾斜 $45^\circ$ 横轴标签与右侧统一标定色条。
+- **运行命令**：
+  ```bash
+  python plot_correlation_matrix_ccc.py --output correlation_matrix_ccc_standard
+  ```
+
