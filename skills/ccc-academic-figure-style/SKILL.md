@@ -374,3 +374,24 @@ HIGHLIGHT_YELLOW = "#FEC211"  # 专属特别高亮/趋势线/最优标注亮黄�
   python plot_correlation_matrix_ccc.py --output correlation_matrix_ccc_standard
   ```
 
+### 7.11 Joint Parity Plot with Marginal Distributions & Golden Drop Shadow (`plot_parity_with_marginal_distributions.py`)
+- **适用场景**：机器学习与深度学习回归模型 1:1 对角预测拟合分析（Parity / Actual vs Predicted Plot），兼顾检验模型在全域尺度上的数据分布保持性与边缘概率密度（Marginal Density Fidelity）。
+- **设计标准**：
+  - **色彩阶次降低与明度校准**：摒弃沉闷深红与厚重深蓝，采用柔和、清爽的高对比顶刊学术色标——训练集采用活力珊瑚朱红（`#E53935`），测试集采用清亮青海蓝（`#0097A7`）。
+  - **图例右下角金黄立体投影（3D Golden Drop Shadow）**：
+    - 图例框采用纯白底色（`facecolor='white'`）加极细黑边框（`edgecolor='#222222'`, `linewidth=1.05`）。
+    - 采用 `matplotlib.patheffects.SimplePatchShadow(offset=(2.8, -2.8), shadow_rgbFace='#FFA000', alpha=1.0)` 向右下方投射平实锐利的金黄亮色阴影，带来精致立体的科技感与视觉聚焦。
+  - **顶部与右侧双向边际分布轴（Marginal Density Axes）**：
+    - 顶部边际轴：展示实验实测真值（Experimental ground truth）的概率密度分布曲线（KDE，`alpha=0.18` 轻薄透明羽化填充，红蓝双峰对比）。
+    - 右侧边际轴：旋转展示模型预测值（Predicted values）的纵向概率密度分布曲线（KDE，`alpha=0.18` 轻薄透明羽化填充）。
+    - 边际轴外边框全部去除（`despine`），仅保留与主坐标轴交界的细分界线，无刻度文字冗余干扰。
+  - **中心主散点区域**：
+    - 黑色主对角线（$y=x$），细虚线标注 $\pm 15\%$ 误差包络带，并在图例中动态统计容限内样本占比（如 `70.8% points included`）。
+    - 训练集空心圆圈（`edgecolors='#E53935'`），测试集空心正方形（`edgecolors='#0097A7'`, `marker='s'`）。
+    - 严格 Times New Roman 字体、全内向精致刻度、无顶部与右侧刻度。
+- **运行命令**：
+  ```bash
+  python plot_parity_with_marginal_distributions.py --output parity_with_marginals_standard
+  ```
+
+
