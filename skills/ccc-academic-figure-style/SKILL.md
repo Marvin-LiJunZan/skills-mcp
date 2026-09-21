@@ -310,3 +310,27 @@ HIGHLIGHT_YELLOW = "#FEC211"  # 专属特别高亮/趋势线/最优标注亮黄�
   python plot_dual_axis_model_evaluation_bars.py --output dual_axis_model_evaluation_bars_standard
   ```
 
+### 7.6 Model Evaluation Matrix Heatmap Table (`plot_model_evaluation_table_heatmap.py`)
+- **适用场景**：多预测模型在多任务（如抗压强度、流动度）与双数据集（Train vs Test）下四大核心指标（MAE, RMSE, MAPE, $R^2$）的紧凑矩阵热图展示。
+- **设计标准**：
+  - 双板块布局：左侧为 `Train` 集合，右侧为 `Test` 集合，板块间留有微空白间隔。
+  - 表头深青绿色底色（`#00897B`），白色加粗字标（`MAE`, `RMSE`, `MAPE`, $\mathbf{R^2}$）。
+  - 单元格纯白细边框分隔（`linewidth=1.2`），内部填充连续青色渐变（`CYAN_CMAP`），颜色深浅直观对应指标向“理想值（ideal value）”的收敛程度（误差类指标越接近0越深，$R^2$越接近1越深）。
+  - 测试集最优决定系数 $R^2$ 强制以粗体红色字体（`#D32F2F`）高亮醒目标出。
+  - 底部图例栏：4 根并排水平渐变色标条（MAE, RMSE, MAPE, $R^2$），右端理想值对齐并在上方清晰标注 `ideal value`。
+- **运行命令**：
+  ```bash
+  python plot_model_evaluation_table_heatmap.py
+  ```
+
+### 7.7 Multilevel Parallel Categories Alluvial Sankey Diagram (`plot_parallel_categories_sankey_ccc.py`)
+- **适用场景**：多阶段配比参数与多目标性能之间的流向演化、多层级分类归属、帕累托解集（Pareto Front）物理权衡可视化。
+- **设计标准**：
+  - 7 个连续阶段竖轴，平滑三次贝塞尔多边形流带（`Path.CURVE4`，`dx = (x1 - x0) * 0.48`）。
+  - CCC 经典学术三色：绯红强色（`#F14040`，表征高强优先队列）、深海蓝（`#2F6AB9`，表征高流动/基线队列）、金黄高亮色（`#FEC211`，表征折衷平衡 Knee 点）。
+  - 节点矩形为极浅石板白底色（`#F8FAFC`），细灰边框（`#94A3B8`），文字居中排列，留有充裕白边内边距。
+  - 底部配比参数与性能目标分别设置黑色水平分组框线（Bracket），标明 `Mixture design parameters` 与 `Multi-objective performance`。
+- **运行命令**：
+  ```bash
+  python plot_parallel_categories_sankey_ccc.py
+  ```
