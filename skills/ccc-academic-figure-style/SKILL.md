@@ -313,11 +313,14 @@ HIGHLIGHT_YELLOW = "#FEC211"  # 专属特别高亮/趋势线/最优标注亮黄�
 ### 7.6 Model Evaluation Matrix Heatmap Table (`plot_model_evaluation_table_heatmap.py`)
 - **适用场景**：多预测模型在多任务（如抗压强度、流动度）与双数据集（Train vs Test）下四大核心指标（MAE, RMSE, MAPE, $R^2$）的紧凑矩阵热图展示。
 - **设计标准**：
-  - 双板块布局：左侧为 `Train` 集合，右侧为 `Test` 集合，板块间留有微空白间隔。
-  - 表头采用 CCC 深海蓝底色（`#1F4E79`），白色加粗字标（`MAE`, `RMSE`, `MAPE`, $\mathbf{R^2}$），稳重大气。
-  - 单元格纯白细边框分隔（`linewidth=1.2`），内部填充 CCC 经典深海蓝-冰蓝连续渐变色阶（`#FFFFFF` $\rightarrow$ `#CFE2F7` $\rightarrow$ `#2F6AB9`），颜色深浅直观对应指标向“理想值（ideal value）”的收敛程度（误差类指标越接近0越深，$R^2$越接近1越深）。
-  - 测试集最优决定系数 $R^2$ 强制以 CCC 绯红加粗字体（`#E63939`）结合 CCC 专属标志性亮黄色边框（`#FEC211`, `linewidth=1.8`）高亮醒目标出。
-  - 底部图例栏：4 根并排水平渐变色标条（MAE, RMSE, MAPE, $R^2$）同步采用 CCC 深海蓝渐变，右端理想值对齐并在上方清晰标注 `ideal value`。
+  - **双板块红蓝对称布局（Dual Red-Blue Architecture）**：左侧 `Train` 集合统一采用 CCC 经典深海蓝系，右侧 `Test` 集合统一采用 CCC 经典绯红系，板块间留有微空白间隔，直观建立训练集与测试集的鲜明学术对比。
+  - **表头层次分明**：`Train` 表头采用 CCC 深海蓝（`#1F4E79`），`Test` 表头采用 CCC 深绯红（`#A81C1C`），搭配纯白加粗文字（`MAE`, `RMSE`, `MAPE`, $\mathbf{R^2}$）。
+  - **单元格渐进收敛填充**：
+    - `Train` 单元格填充 CCC 经典深海蓝-冰蓝连续渐变色阶（`#FFFFFF` $\rightarrow$ `#CFE2F7` $\rightarrow$ `#2F6AB9`）；
+    - `Test` 单元格填充 CCC 经典绯红-柔粉连续渐变色阶（`#FFFFFF` $\rightarrow$ `#FAD4D6` $\rightarrow$ `#E63939`）；
+    - 纯白细边框分隔（`linewidth=1.2`），颜色深浅直观对应指标向“理想值（ideal value）”的收敛程度（误差类指标越接近0越深，$R^2$越接近1越深）。
+  - **最优模型黄金徽标双重聚焦**：测试集最优决定系数 $R^2$ 强制以 CCC 专属标志性亮黄色边框（`#FEC211`, `linewidth=2.0`）结合纯白加粗字体高亮醒目标出。
+  - **底部图例栏左右分区对称**：左侧展示 `Train Error` 与 `Train R^2`（深海蓝渐变），右侧展示 `Test Error` 与 `Test R^2`（绯红渐变），右端理想值对齐并在上方清晰标注 `ideal value`。
 - **运行命令**：
   ```bash
   python plot_model_evaluation_table_heatmap.py
