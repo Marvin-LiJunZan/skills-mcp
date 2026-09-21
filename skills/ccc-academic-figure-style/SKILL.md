@@ -242,3 +242,71 @@ HIGHLIGHT_YELLOW = "#FEC211"  # 专属特别高亮/趋势线/最优标注亮黄�
 
   fig.tight_layout(pad=0.3, h_pad=0.4, w_pad=0.3)
   ```
+
+---
+
+## 7. Advanced Model Verification & Data Distribution Templates (模型验证与数据分布标准模板)
+
+### 7.1 Strict Axis Tick Rule (全局刻度线铁律)
+> [!IMPORTANT]
+> **绝对禁止在任何坐标轴出现顶部刻度线（Top Ticks）与未授权右侧刻度线（Right Ticks）！**
+> 任何出版级图表必须强制全局配置：
+> ```python
+> plt.rcParams['xtick.top'] = False
+> plt.rcParams['ytick.right'] = False
+> ax.tick_params(axis='both', which='major', direction='in', top=False, right=False)
+> ax.tick_params(axis='both', which='minor', direction='in', top=False, right=False)
+> ```
+> 仅在双 Y 轴（`ax.twinx()`）场景下，右侧坐标轴允许显示专属于右侧度量的刻度线（如 $R^2$ 轴），此时双轴顶部依然严禁出现任何刻度线！
+
+### 7.2 Conformal Prediction Interval Coverage Plot (`plot_conformal_prediction_intervals.py`)
+- **适用场景**：回归模型的不确定性量化（UQ）与经验覆盖率检验（Conformal Prediction Intervals）。
+- **设计标准**：
+  - 测试样本按实测真值单调升序排列，形成平滑递增的对角真值基线。
+  - 浅蓝透明包络带（`#90caf9`, alpha=0.52）展示 $95\%$ 预测区间 $[\hat{y} - q_{0.95}, \hat{y} + q_{0.95}]$。
+  - 空心蓝菱形（`#1976d2`）标示点预测值；空心红圆圈（`#e53935`）标示实测真值。
+  - 红色叉号标记未被区间覆盖的失效样本（Uncovered failure）。
+  - 右下/左下设置独立方框量化指标面板：包含经验覆盖率 $\mathbf{EC}$、平均区间全宽 $\mathbf{MIW}$、$R^2$ 及 $\mathrm{RMSE}$。
+- **运行命令**：
+  ```bash
+  python plot_conformal_prediction_intervals.py --output conformal_uq_standard
+  ```
+
+### 7.3 Sample-Wise Prediction Tracking & Residual Dynamics (`plot_sample_tracking_residuals.py`)
+- **适用场景**：全样本（训练集 + 测试集）序列微观跟踪、逐点拟合精度与残差分布（Residual dynamics）。
+- **设计标准**：
+  - 上方曲线：青色实线（`#00b4d8`）为实测曲线（`Experiment`）；深蓝实线（`#1565c0`）为模型预测曲线（`Model prediction`）。
+  - 分割线：黑色虚线（`linestyle='--'`）贯通上下，清晰划分训练集与测试集；底部安全空余区间标注灰色 `Training Set` 与 `Testing Set`。
+  - 下方残差：珊瑚红圆点线（`#e53935`，半透散点圆），直观展示逐样本偏差 $e_i = \hat{y}_i - y_i$。
+  - 灰色包络虚线标注最大正偏差与最大负偏差界限，右侧边距标注具体数值（如 `+9.6`, `-13.2`）。
+- **运行命令**：
+  ```bash
+  python plot_sample_tracking_residuals.py --output sample_tracking_residuals_standard
+  ```
+
+### 7.4 Multi-Variable Feature Distribution Horizontal Stacked Bars (`plot_feature_distribution_bars.py`)
+- **适用场景**：多输入参数物理区间离散分布与样本量统计（如材料粒径、几何尺寸、力学参数及配比）。
+- **设计标准**：
+  - 水平对齐堆叠长条，总长对应样本总数（如 `Number of specimens = 228` 或 `600`）。
+  - 柔和莫兰迪/柔粉学术色带（杏粉、浅鼠尾绿、淡紫、奶油黄、浅天蓝、柔玫瑰粉）。
+  - 区间分割线顶部标注精确物理阈值切割点；色块内部居中显示本区间离散试件数（Counts）。
+  - 左侧纵轴双行排版：第一行为参数符号与物理单位，第二行为小字 `Counts`。
+  - 底部仅显示零点与总样本数刻度，极简无边框设计。
+- **运行命令**：
+  ```bash
+  python plot_feature_distribution_bars.py --output feature_distribution_bars_standard
+  ```
+
+### 7.5 Dual Y-Axis Multi-Metric Model Evaluation Bar Chart (`plot_dual_axis_model_evaluation_bars.py`)
+- **适用场景**：跨数据集划分（Training Set vs Testing Set）与多模型（如 Model A vs Model B）在多指标（MAE, RMSE, MAPE, $R^2$）下的综合横向性能比对。
+- **设计标准**：
+  - 左侧 Y 轴表征绝对/相对误差指标（MAE, RMSE, MAPE），右侧 Y 轴专用于决定系数 $R^2$（高对比皇家蓝轴线与刻度）。
+  - 柱体采用垂直线性渐变填充（Teal->White, Sky Blue->White, Orange->White, Red->White）搭配 $0.85\mathrm{pt}$ 精致边框。
+  - 柱顶标注数值（$R^2$ 柱顶为深蓝色数值，误差柱顶为深灰/紫数值）。
+  - 柱体底座内部文字旋转 $90^\circ$ 竖排标注模型代号（如 `TL`, `MLP`）。
+  - 左上角 $2\times 2$ 规整图例，白色底色加深灰细边框。
+- **运行命令**：
+  ```bash
+  python plot_dual_axis_model_evaluation_bars.py --output dual_axis_model_evaluation_bars_standard
+  ```
+
