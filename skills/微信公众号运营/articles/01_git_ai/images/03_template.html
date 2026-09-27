@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!-- 步骤流程模板 1080x620（5 步，增减 .step 行后同步调高度）。只改文字。版式配色勿动。
+     渲染: bash ../scripts/render_images.sh 1080x620 flow.html flow.png -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 620px; overflow: hidden; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: linear-gradient(160deg, #081426 0%, #0C2242 60%, #10294E 100%);
+    color: #F2F5FA;
+    padding: 44px 64px;
+  }
+  .title { text-align: center; }
+  .title .zh { font-size: 32px; font-weight: 700; letter-spacing: 3px; }
+  .title .en { margin-top: 8px; font-size: 15px; letter-spacing: 4px; color: #D4A93C; }
+  .flow { margin-top: 32px; }
+  .step {
+    display: flex; align-items: center;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(169,187,214,0.28);
+    border-left: 4px solid #D4A93C;
+    border-radius: 10px;
+    padding: 14px 26px;
+    margin-bottom: 13px;
+  }
+  .num { font-size: 24px; font-weight: 700; color: #E8C56A; width: 56px; flex-shrink: 0; }
+  .name { font-size: 21px; font-weight: 700; letter-spacing: 1px; width: 300px; flex-shrink: 0; }
+  .desc { font-size: 17px; color: #A9BBD6; line-height: 1.5; }
+  .time { margin-left: auto; font-size: 15px; color: #D4A93C; flex-shrink: 0; padding-left: 20px; }
+  .foot { text-align: center; color: #D4A93C; font-size: 16px; letter-spacing: 3px; margin-top: 4px; }
+</style>
+</head>
+<body>
+  <div class="title">
+    <div class="zh">Research Project Template</div>
+    <div class="en">开箱即用的 AI 科研项目目录</div>
+  </div>
+  <div class="flow">
+    <div class="step"><span class="num">1</span><span class="name">paper/</span><span class="desc">Elsevier LaTeX 论文与投稿图</span><span class="time">耗时</span></div>
+    <div class="step"><span class="num">2</span><span class="name">src/ + scripts/</span><span class="desc">Elsevier LaTeX 论文与投稿图</span><span class="time">耗时</span></div>
+    <div class="step"><span class="num">3</span><span class="name">data/</span><span class="desc">Elsevier LaTeX 论文与投稿图</span><span class="time">耗时</span></div>
+    <div class="step"><span class="num">4</span><span class="name">results/</span><span class="desc">Elsevier LaTeX 论文与投稿图</span><span class="time">耗时</span></div>
+    <div class="step"><span class="num">5</span><span class="name">AGENTS.md</span><span class="desc">Elsevier LaTeX 论文与投稿图</span><span class="time">耗时</span></div>
+  </div>
+  <div class="foot">目录先规范，AI 才知道文件应该放在哪里</div>
+</body>
+</html>

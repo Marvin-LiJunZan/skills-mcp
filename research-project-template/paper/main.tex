@@ -1,0 +1,29 @@
+\documentclass[preprint,12pt]{elsarticle}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{microtype}
+\graphicspath{{figures/}}
+\journal{Journal Name}
+\begin{document}
+\begin{frontmatter}
+\title{Your Paper Title}
+\author{Your Name}
+\begin{abstract}
+Write your abstract here.
+\end{abstract}
+\begin{keyword}
+keyword 1 \sep keyword 2 \sep keyword 3
+\end{keyword}
+\end{frontmatter}
+\input{sections/01_introduction}
+\input{sections/02_methodology}
+\input{sections/03_experiments}
+\input{sections/04_results}
+\input{sections/05_conclusion}
+\bibliographystyle{elsarticle-num}
+\bibliography{references}
+\end{document}
