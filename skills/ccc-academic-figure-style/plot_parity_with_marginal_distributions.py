@@ -34,9 +34,9 @@ plt.rcParams['ytick.direction'] = 'in'
 plt.rcParams['xtick.top'] = False
 plt.rcParams['ytick.right'] = False
 
-# CCC Calibrated Red-Blue Palette & Signature Bright Yellow Shadow
-COLOR_TRAIN = '#E63939'   # CCC Classic Crimson / Red (Training set)
-COLOR_TEST = '#2F6AB9'    # CCC Classic Sapphire Blue (Test set)
+# CCC Calibrated Red-Blue Palette & Signature Bright Yellow Shadow (1 Notch Lighter for modern elegance)
+COLOR_TRAIN = '#EB6569'   # CCC Soft Coral Red (Training set, 1 notch lighter than #E63939)
+COLOR_TEST = '#4E92DE'    # CCC Airy Cerulean Blue (Test set, 1 notch lighter than #2F6AB9)
 SHADOW_YELLOW = '#FEC211' # CCC Signature Bright Yellow (#FEC211)
 
 
@@ -55,12 +55,12 @@ def generate_synthetic_parity_data(n_train=480, n_test=120):
     p_te = y_te + np.random.normal(0, 2.5 + 0.04 * y_te)
     return y_tr, p_tr, y_te, p_te
 
-def apply_shadow_to_legend(leg, offset=(2.8, -2.8), color=SHADOW_YELLOW):
+def apply_shadow_to_legend(leg, offset=(1.5, -1.5), color=SHADOW_YELLOW):
     """Applies a crisp golden-yellow 3D drop shadow to the legend box."""
     frame = leg.get_frame()
     frame.set_facecolor('#ffffff')
     frame.set_edgecolor('#222222')
-    frame.set_linewidth(1.05)
+    frame.set_linewidth(0.85)
     frame.set_alpha(1.0)
     frame.set_path_effects([
         pe.SimplePatchShadow(offset=offset, shadow_rgbFace=color, alpha=1.0),
@@ -72,9 +72,10 @@ def plot_single_joint_parity(y_tr, p_tr, y_te, p_te,
                              caption="(c) XGBoost", lims=(0, 160),
                              output_prefix="parity_with_marginals_standard"):
     fig = plt.figure(figsize=(5.4, 5.4), dpi=300)
+    # ZERO SPACING: wspace=0.0, hspace=0.0 so marginal axes directly touch main box
     gs = fig.add_gridspec(2, 2, width_ratios=(4.5, 1.0), height_ratios=(1.0, 4.5),
                           left=0.15, right=0.92, bottom=0.14, top=0.92,
-                          wspace=0.04, hspace=0.04)
+                          wspace=0.0, hspace=0.0)
 
     ax_main = fig.add_subplot(gs[1, 0])
     ax_top = fig.add_subplot(gs[0, 0], sharex=ax_main)
@@ -109,32 +110,30 @@ def plot_single_joint_parity(y_tr, p_tr, y_te, p_te,
     # Legend with yellow shadow
     leg = ax_main.legend(loc='upper left', frameon=True, fontsize=7.6,
                          borderpad=0.45, labelspacing=0.35)
-    apply_shadow_to_legend(leg, offset=(2.8, -2.8), color=SHADOW_YELLOW)
+    apply_shadow_to_legend(leg, offset=(1.5, -1.5), color=SHADOW_YELLOW)
 
     ax_main.text(0.5, -0.22, caption, transform=ax_main.transAxes, ha='center', va='top',
                  fontsize=10.0, fontweight='bold', fontname='Times New Roman')
 
-    # 2. Top Marginal Distribution (Ground Truth)
-    sns.kdeplot(y_tr, ax=ax_top, color=COLOR_TRAIN, fill=True, alpha=0.18, lw=1.2, bw_adjust=0.85)
-    sns.kdeplot(y_te, ax=ax_top, color=COLOR_TEST, fill=True, alpha=0.18, lw=1.2, bw_adjust=0.85)
+    # 2. Top Marginal Distribution (Directly Touching ax_main top)
+    sns.kdeplot(y_tr, ax=ax_top, color=COLOR_TRAIN, fill=True, alpha=0.15, lw=1.0, bw_adjust=0.85)
+    sns.kdeplot(y_te, ax=ax_top, color=COLOR_TEST, fill=True, alpha=0.15, lw=1.0, bw_adjust=0.85)
+    ax_top.set_ylim(bottom=0)
     ax_top.tick_params(axis='x', which='both', bottom=False, labelbottom=False, top=False)
     ax_top.tick_params(axis='y', which='both', left=False, labelleft=False, right=False)
-    for spine in ['top', 'right', 'left']:
+    for spine in ['top', 'right', 'left', 'bottom']:
         ax_top.spines[spine].set_visible(False)
-    ax_top.spines['bottom'].set_color('#222222')
-    ax_top.spines['bottom'].set_linewidth(0.85)
     ax_top.set_ylabel('')
     ax_top.set_xlabel('')
 
-    # 3. Right Marginal Distribution (Predicted)
-    sns.kdeplot(y=p_tr, ax=ax_right, color=COLOR_TRAIN, fill=True, alpha=0.18, lw=1.2, bw_adjust=0.85)
-    sns.kdeplot(y=p_te, ax=ax_right, color=COLOR_TEST, fill=True, alpha=0.18, lw=1.2, bw_adjust=0.85)
+    # 3. Right Marginal Distribution (Directly Touching ax_main right)
+    sns.kdeplot(y=p_tr, ax=ax_right, color=COLOR_TRAIN, fill=True, alpha=0.15, lw=1.0, bw_adjust=0.85)
+    sns.kdeplot(y=p_te, ax=ax_right, color=COLOR_TEST, fill=True, alpha=0.15, lw=1.0, bw_adjust=0.85)
+    ax_right.set_xlim(left=0)
     ax_right.tick_params(axis='y', which='both', left=False, labelleft=False, right=False)
     ax_right.tick_params(axis='x', which='both', bottom=False, labelbottom=False, top=False)
-    for spine in ['top', 'right', 'bottom']:
+    for spine in ['top', 'right', 'bottom', 'left']:
         ax_right.spines[spine].set_visible(False)
-    ax_right.spines['left'].set_color('#222222')
-    ax_right.spines['left'].set_linewidth(0.85)
     ax_right.set_xlabel('')
     ax_right.set_ylabel('')
 

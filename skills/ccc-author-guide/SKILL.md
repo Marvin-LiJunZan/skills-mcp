@@ -14,7 +14,7 @@ This skill establishes the definitive formatting, technical screening, and autom
 A production-grade Python audit script is bundled with this skill at `scripts/audit_ccc_manuscript.py`. Whenever the user asks to "审核 CCC 论文格式" or "修改为 CCC 投稿要求", run this script first to generate an instant diagnostic report:
 
 ```powershell
-python ".\scripts\audit_ccc_manuscript.py" <path_to_paper.tex> [path_to_Highlights.txt]
+python "C:\Users\12830\.gemini\config\skills\ccc-author-guide\scripts\audit_ccc_manuscript.py" <path_to_paper.tex> [path_to_Highlights.txt]
 ```
 
 ### Checks Performed by the Script:
@@ -82,6 +82,18 @@ published by Hlobil and Kumpov\'{a}~\cite{hlobil2023}.
 * Every figure (`\label{fig:...}`) must be cited in the text before the next numbered figure is mentioned.
 * **Never cite Figure 9 before Figure 8**. If cross-referencing a later figure, refer to the section instead (e.g., *"detailed in Section 3.5"*).
 
+### B1. Anti-Consecutive Figures & Dedicated Analytical Loop (严禁连续无文图表堆叠与独立闭环分析)
+* **Strict Anti-Consecutive Mandate (严禁连续大图无文堆叠)**:
+  - Never place two large figures (`\begin{figure}` / Word Figure Tables) or tables sequentially back-to-back without analytical paragraphs between them ("图堆图"属于顶刊排版大忌，严禁两图之间仅以空行、纯小节标题或机械过场套话隔开)。
+  - Never bunch multiple figures together with a generic summary sentence (严禁出现如 *"As shown in Figs. 8 to 10..."* 这种跨多图混合、泛泛而谈的粗糙写法)。
+* **Dedicated Analytical Loop (一图一论点，闭环深度分析)**:
+  - Every core figure/table must carry an **explicit, irreplaceable core claim** (每个核心图/表必须承担一个明确且不可替代的论点).
+  - Every core figure/table must be accompanied in adjacent text by a **four-step analytical loop**:
+    1. **Lead-in & Claim (明确论点)**: State the investigative dimension and hypothesis.
+    2. **Quantitative Result Description (定量结果描述)**: Report concrete metrics ($R^2$, RMSE, coverage PICP, interval width MPIW, extrema, inflections, diagonal alignment, error distribution).
+    3. **Physical / Mechanistic & Model Explanation (物理机理与模型解释)**: Deeply trace phenomena to material damage mechanics (e.g., $9\%$ ice-water phase-change expansion, pore hydrostatic/osmotic pressure, ITZ microcrack nucleation, shear band localization) or algorithmic dynamics (e.g., Copula dependence preservation, LSTM gated damage accumulation, loss boundary admissible constraints).
+    4. **Logical Transition (逻辑过渡)**: Synthesize the conclusion to naturally motivate the next question or subsequent figure.
+
 ### C. Multi-Subfigure Rigid Symmetric Grid Standard
 When constructing multi-row, multi-column subfigure matrices (e.g., 3D cube grids):
 1. **Pad all raw subfigure canvases** to identical dimensions $(W \times H)$ with white margins to ensure equal aspect ratios and cube centers.
@@ -116,6 +128,43 @@ When constructing multi-row, multi-column subfigure matrices (e.g., 3D cube grid
 \end{figure*}
 ```
 3. Use `[t]` (top alignment) instead of `[b]` (bottom alignment) to prevent vertical jumping caused by differing caption heights.
+
+---
+
+
+### D. Double-Column Wide-Float Placement Rule (双栏跨栏图表与空白页控制)
+
+In `elsarticle` 5p/two-column manuscripts, `figure*` and `table*` are double-column floats. Their placement is much more constrained than ordinary single-column floats, and a float-dense Results section can easily create either a "float wall" or large blank regions if controlled too aggressively.
+
+1. **Do not trust `[h]` for `figure*` / `table*`.** In two-column mode, `h` is normally ineffective for double-column floats. Avoid using `[htbp]` as if it guaranteed local placement.
+
+2. **Default placement for float-dense CCC Results:** prefer wide figures at the page top and wide tables at the page bottom:
+   ```latex
+   \usepackage{stfloats} % enables bottom placement of double-column floats
+
+   \begin{figure*}[!t]
+   ...
+   \end{figure*}
+
+   \begin{table*}[!b]
+   ...
+   \end{table*}
+   ```
+   This allows the two text columns to continue through the middle of the page and reduces accumulation of all wide floats at page tops. Always compile-test `stfloats` with the actual `elsarticle` version before adopting it.
+
+3. **Do NOT place `\FloatBarrier` before every Results subsection.** This was explicitly found to create half-empty pages when a pending `figure*`/`table*` cannot fit before the barrier. In a float-dense Results section, the default is **no subsection-level barrier**.
+
+4. **Use `\FloatBarrier` only as an exceptional repair tool.** Load `placeins` only when needed and add a barrier at a major section boundary (e.g. Results -> Discussion) *only if visual inspection proves that unrelated floats are crossing that boundary*. If the barrier creates large blank areas, remove it and solve the queue through float placement/order instead.
+
+5. **Do not use `H`, routine `\clearpage`, or repeated forced page breaks as cosmetic fixes.** They often solve one placement problem by creating another. Forced breaks are acceptable only for a deliberate standalone figure/float page.
+
+6. **Interleave prose and evidence.** Avoid declaring many wide figures/tables from several scientific questions before enough explanatory prose has been processed. Where practical, keep each Results subsection in the semantic pattern `result prose -> associated figure/table -> interpretation`, while accepting that the rendered float may move to the nearest legal top/bottom position.
+
+7. **Distinguish a real whitespace defect from a legitimate full-page figure.** A page with a large full-width 3D reconstruction or multi-panel chloride figure may contain little extractable text yet still be visually well occupied. The defect to eliminate is a page with only a short paragraph or heading followed by a large unused white region.
+
+8. **Mandatory page-level verification after compilation.** Inspect the PDF page by page. Reject layouts with (a) half-empty text pages caused by subsection barriers, (b) unrelated wide floats from several scientific questions stacked as a data wall when avoidable, or (c) floats drifting into the wrong major section. A zero-warning LaTeX log is not sufficient evidence of good float layout.
+
+**CCC default policy learned from production manuscripts:** in `elsarticle` 5p/two-column mode, first try `stfloats` with `figure* [!t]` and `table* [!b]`, avoid subsection-level `\FloatBarrier`, and only add a major-boundary barrier after visual proof that it improves rather than worsens the compiled pages.
 
 ---
 
@@ -239,7 +288,12 @@ When invoked to format or audit a manuscript for CCC, execute the following step
    - Count characters for each bullet. If $> 85$, condense text without losing core numerical claims.
 7. **Step 7: End-Matter Audit**:
    - Verify CRediT, Competing Interests, Funding, and Data availability sections.
-8. **Step 8: Verification**:
-   - Compile twice with `pdflatex` to guarantee zero undefined citations (`?`) and zero undefined references.
+8. **Step 8: Double-Column Float Audit**:
+   - In `elsarticle` 5p/two-column mode, inspect all `figure*` and `table*` placements after compilation, not merely their source options.
+   - For float-dense Results, default to `figure* [!t]` and `table* [!b]` with `stfloats` when compatible; do **not** add `\FloatBarrier` at every subsection.
+   - Add a major-boundary `\FloatBarrier` only if floats actually cross into the wrong scientific section and only if the resulting pages remain well filled.
+   - Reject half-empty text pages caused by over-constrained floats; do not misclassify an intentionally full-page multi-panel figure as a blank-page defect.
+9. **Step 9: Verification**:
+   - Compile twice with `pdflatex` (or the manuscript's required LaTeX engine) to guarantee zero undefined citations (`?`) and zero undefined references.
    - Run `audit_ccc_manuscript.py` to confirm `PASSED [OK]`.
 

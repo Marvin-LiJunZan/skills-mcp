@@ -1,0 +1,268 @@
+{
+  "category": "industry_rotation",
+  "description": "关注趋势强弱，走强后跟随，转弱时退出",
+  "explanation": {
+    "idea": "趋势投资：选择中期走势更强且相对平稳的行业，趋势转弱时更换",
+    "rules": "均线是过去若干个交易日净值的平均值。比较每个行业 30 日均线与 250 日均线：30 日均线越高，说明近期走势越强；再结合最近 20 个交易日涨跌幅。每月按综合强弱选择前两个行业；高波动行业少分配资金、低波动行业多分配资金，使各行业承担的波动风险更接近。本版本不参考大盘趋势过滤。前 1 年数据仅用于计算长期均线，默认展示最近 4 年结果。",
+    "position": "选中的两个行业按风险平价分配资金；高波动行业少分、低波动行业多分，使各行业承担的波动风险更接近。",
+    "params": "短期均线天数、长期均线天数、持有行业数、行业资金分配方式"
+  },
+  "extra_contribution_amount": 0.0,
+  "extra_contribution_freq": "每月",
+  "fund_params": [
+    {
+      "key": "buy_mode",
+      "label": "买入方式",
+      "default": "固定金额",
+      "choices": [
+        "固定金额",
+        "固定比例"
+      ],
+      "description": "选择每期按固定金额买入，还是按目标仓位比例买入。"
+    },
+    {
+      "key": "buy_amount",
+      "label": "每次买入金额",
+      "default": 5000,
+      "min": 0,
+      "max": 10000000,
+      "step": 500,
+      "unit": "元/次",
+      "description": "买入方式选固定金额时，每次最多计划投入多少钱。"
+    },
+    {
+      "key": "buy_ratio",
+      "label": "每次买入比例",
+      "default": 0.25,
+      "min": 0.01,
+      "max": 1.0,
+      "step": 0.05,
+      "unit": "0-1",
+      "description": "买入方式选固定比例时，每次最多补到目标仓位的多少比例。"
+    },
+    {
+      "key": "rebalance_interval",
+      "label": "买卖频率",
+      "default": "每月",
+      "choices": [
+        "每日",
+        "每周",
+        "每两周",
+        "每月"
+      ],
+      "description": "策略多久检查一次买卖信号并执行调仓。"
+    },
+    {
+      "key": "initial_capital",
+      "label": "初始资金",
+      "default": 1000000.0,
+      "min": 0,
+      "max": 1000000,
+      "step": 5000,
+      "unit": "元",
+      "description": "回测开始时一次性准备的资金。"
+    },
+    {
+      "key": "extra_contribution_amount",
+      "label": "定期新增金额",
+      "default": 0.0,
+      "min": 0,
+      "max": 100000,
+      "step": 1000,
+      "unit": "元/次",
+      "description": "按定期新增频率额外投入的资金；设为 0 表示回测期间不增加新资金。"
+    },
+    {
+      "key": "extra_contribution_freq",
+      "label": "定期新增频率",
+      "default": "每月",
+      "choices": [
+        "每周",
+        "每月",
+        "每季",
+        "每年"
+      ],
+      "description": "定期新增资金多久投入一次。"
+    },
+    {
+      "key": "exit_ratio",
+      "label": "赎回比例",
+      "default": 1.0,
+      "min": 0.1,
+      "max": 1.0,
+      "step": 0.1,
+      "unit": "0-1",
+      "description": "触发卖出时，卖出当前持有份额的多少比例；1 表示全部卖出。"
+    },
+    {
+      "key": "years",
+      "label": "回测区间",
+      "default": 4,
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "unit": "年",
+      "description": "用于统计回测结果的历史年数。"
+    },
+    {
+      "key": "fund_pool",
+      "label": "行业池",
+      "type": "multi",
+      "default": [
+        "银行",
+        "证券",
+        "保险",
+        "食品饮料",
+        "家电",
+        "农业",
+        "医药",
+        "煤炭",
+        "有色",
+        "钢铁",
+        "化工",
+        "汽车",
+        "军工",
+        "电子",
+        "计算机",
+        "通信",
+        "传媒",
+        "半导体",
+        "房地产",
+        "光伏",
+        "锂电",
+        "人工智能",
+        "国企改革"
+      ],
+      "choices": [
+        "银行",
+        "证券",
+        "保险",
+        "食品饮料",
+        "家电",
+        "农业",
+        "医药",
+        "煤炭",
+        "有色",
+        "钢铁",
+        "化工",
+        "汽车",
+        "机械",
+        "军工",
+        "电子",
+        "计算机",
+        "通信",
+        "传媒",
+        "半导体",
+        "电力",
+        "房地产",
+        "光伏",
+        "锂电",
+        "机器人",
+        "人工智能",
+        "国企改革"
+      ],
+      "description": "参与轮动比较的行业集合。"
+    }
+  ],
+  "fund_pool": [
+    "银行",
+    "证券",
+    "保险",
+    "食品饮料",
+    "家电",
+    "农业",
+    "医药",
+    "煤炭",
+    "有色",
+    "钢铁",
+    "化工",
+    "汽车",
+    "军工",
+    "电子",
+    "计算机",
+    "通信",
+    "传媒",
+    "半导体",
+    "房地产",
+    "光伏",
+    "锂电",
+    "人工智能",
+    "国企改革"
+  ],
+  "idea": "趋势投资",
+  "idea_id": "trend_rotation",
+  "initial_capital": 1000000.0,
+  "lookback": 20,
+  "ma_fast": 30,
+  "ma_slow": 250,
+  "market_dd_stop": null,
+  "market_filter": false,
+  "market_ma": 250,
+  "max_empty": {
+    "days": 0,
+    "mode": "target"
+  },
+  "display_name": "同花顺行业基金趋势轮动策略",
+  "name": "industry-trend-score-skill",
+  "rebalance_days": 20,
+  "rebalance_mode": "monthly",
+  "signal": "trend_score",
+  "strategy_id": "trend_score_research",
+  "top_k": 2,
+  "tunable_params": [
+    {
+      "key": "ma_fast",
+      "label": "短期均线天数",
+      "description": "把最近多少个交易日净值取平均，用来观察行业近期平均走势。",
+      "default": 30,
+      "min": 5,
+      "max": 120,
+      "unit": "天"
+    },
+    {
+      "key": "ma_slow",
+      "label": "长期均线天数",
+      "description": "把最近多少个交易日净值取平均，用来观察行业中长期平均走势。",
+      "default": 250,
+      "min": 60,
+      "max": 500,
+      "unit": "天"
+    },
+    {
+      "key": "top_k",
+      "label": "持有行业数",
+      "description": "每月最多选择几个行业持有。",
+      "default": 2,
+      "min": 1,
+      "max": 5,
+      "unit": "个"
+    },
+    {
+      "key": "weight_scheme",
+      "label": "行业资金分配方式",
+      "description": "决定选中的行业各分配多少资金；风险平价会降低高波动行业的资金权重、提高低波动行业的资金权重，使各行业承担的波动风险更接近。",
+      "choices": [
+        "等权",
+        "排名加权",
+        "评分加权",
+        "风险平价"
+      ],
+      "values": [
+        "equal",
+        "rank",
+        "score",
+        "vol"
+      ],
+      "default": "vol"
+    }
+  ],
+  "weight_scheme": "vol",
+  "years": 4,
+  "summary": "同花顺行业基金趋势轮动策略比较各行业基金短期和长期平均走势，再结合近期累计涨跌幅进行中期强弱排序。每月选择趋势更强、走势相对平稳的行业基金，让高波动行业少分资金、低波动行业多分资金，使各行业承担的波动风险更接近；默认统计最近 4 年。",
+  "warmup_years": 5,
+  "buy_mode": "固定金额",
+  "buy_amount": 5000,
+  "buy_ratio": 0.25,
+  "exit_ratio": 1.0,
+  "version": "0.3.19"
+}

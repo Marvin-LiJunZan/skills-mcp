@@ -34,3 +34,8 @@ Thumbs.db
 # Private chats and transcripts
 chats/
 
+# Temporary test outputs & office backups
+*.wbk
+test_*.html
+*_backup_*/
+

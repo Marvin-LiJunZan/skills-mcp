@@ -54,6 +54,17 @@ HIGHLIGHT_YELLOW = "#FEC211"  # 专属特别高亮/趋势线/最优标注亮黄�
 
 ## 2. Text-First Narrative Flow & Anti-Blank Space (先文后图，排版节奏与严禁滥用 FloatBarrier)
 
+- **【核心图表排版硬性禁令：严禁连续无文图表堆叠，落实独立论点与闭环分析】(Anti-Consecutive Figures & Dedicated Analytical Loop Mandate)**:
+  * **硬性禁令（Strict Prohibition）**：
+    1. **绝对禁止两个独立的大型结果图（或大表）连续出现而中间没有解释正文**（严禁“图堆图”，严禁两图之间仅以空段落、纯小节标题或机械过场套话隔开）；
+    2. **严禁多图笼统合并带过**（严禁出现“如 Fig. 8 至 Fig. 10 所示……”后仅用一段泛泛概括应付多张核心结果图）。
+  * **核心原则与深度分析闭环（Dedicated Argumentation & Narrative Loop）**：
+    * **每个核心图/表必须承担一个明确且不可替代的独立论点（Explicit Core Claim）**；
+    * **必须在相邻正文中完成标准的“结果描述 + 物理/模型解释”闭环分析**：
+      1. **显式论点与引导（Core Claim & Lead-in）**：明确指出该图表承担的论证目标与考察维度；
+      2. **定量结果描述（Quantitative Result Description）**：从图表与各子图中提取具体的定量指标（如 $R^2$, RMSE, 覆盖率 PICP, 区间宽度 MPIW、极值、收敛拐点、对角线拟合程度、误差分布等），并对照基线或不同工况展开客观描述；
+      3. **物理机理与模型机理解释（Deep Physical/Mechanistic & Model Explanation）**：将数据现象深入溯源至材料损伤力学（如水–冰相变膨胀 9% 产生的静水压/渗透压、界面过渡区 ITZ 微裂缝成核扩展、均质损伤向主剪切带局部化失稳转变等）或算法动力学机理（如 Copula 相依拓扑保留、门控记忆细胞对不可逆内变量损伤的历史积分、D+P+B 损失边界容许约束、正交解耦调控等）；
+      4. **逻辑过渡衔接（Logical Transition）**：总结当前图表得出的确定性结论，自然引出下一项测试、下一层级演化或下一张图表的论据需求。
 - **Forbidden Rule (忌讳)**: Never place two large figures sequentially back-to-back without analytical paragraphs between them ("图堆图"属于论文排版大忌).
 - **Text-First Principle**: Every figure float (`\begin{figure}`) and table float (`\begin{table}`) must be preceded by 1–2 paragraphs of quantitative analysis explaining:
   1. What evidence the figure/table presents;
@@ -379,23 +390,95 @@ HIGHLIGHT_YELLOW = "#FEC211"  # 专属特别高亮/趋势线/最优标注亮黄�
   ```
 
 ### 7.11 Joint Parity Plot with Marginal Distributions & Golden Drop Shadow (`plot_parity_with_marginal_distributions.py`)
-- **适用场景**：机器学习与深度学习回归模型 1:1 对角预测拟合分析（Parity / Actual vs Predicted Plot），兼顾检验模型在全域尺度上的数据分布保持性与边缘概率密度（Marginal Density Fidelity）。
+- **适用场景**：机器学习与深度学习回归模型 1:1 对角预测拟合分析，兼顾边缘概率密度保持性（Marginal Density Fidelity）。
 - **设计标准**：
-  - **CCC 经典红蓝配色与明度校准**：严格遵循 CCC 标准红蓝系统——训练集采用经典绯红（`#E63939`），测试集采用皇家深海蓝（`#2F6AB9`）。
-  - **图例右下角 CCC 专属亮黄立体投影（3D Bright Yellow Drop Shadow）**：
-    - 图例框采用纯白底色（`facecolor='white'`）加极细黑边框（`edgecolor='#222222'`, `linewidth=1.05`）。
-    - 采用 `matplotlib.patheffects.SimplePatchShadow(offset=(2.8, -2.8), shadow_rgbFace='#FEC211', alpha=1.0)` 向右下方投射平实锐利的 CCC 标志性亮黄色阴影（`#FEC211`），带来精致立体的科技感与视觉聚焦。
-  - **顶部与右侧双向边际分布轴（Marginal Density Axes）**：
-    - 顶部边际轴：展示实验实测真值（Experimental ground truth）的概率密度分布曲线（KDE，`alpha=0.18` 轻薄透明羽化填充，红蓝双峰对比）。
-    - 右侧边际轴：旋转展示模型预测值（Predicted values）的纵向概率密度分布曲线（KDE，`alpha=0.18` 轻薄透明羽化填充）。
-    - 边际轴外边框全部去除（`despine`），仅保留与主坐标轴交界的细分界线，无刻度文字冗余干扰。
-  - **中心主散点区域**：
-    - 黑色主对角线（$y=x$），细虚线标注 $\pm 15\%$ 误差包络带，并在图例中动态统计容限内样本占比（如 `70.8% points included`）。
-    - 训练集空心圆圈（`edgecolors='#E63939'`），测试集空心正方形（`edgecolors='#2F6AB9'`, `marker='s'`）。
-    - 严格 Times New Roman 字体、全内向精致刻度、无顶部与右侧刻度。
+  - 训练集绯红（`#E63939`），测试集皇家蓝（`#2F6AB9`）。
+  - 图例框亮黄 Drop Shadow：`SimplePatchShadow(offset=(2.8,-2.8), shadow_rgbFace="#FEC211", alpha=1.0)`。
+  - 顶部 KDE（实测值）+ 右侧 KDE（预测值）边际分布轴，外框去除。
+  - 中心：黑色对角线 y=x，±15% 误差包络带，空心圆（训练）/ 空心方（测试）。
+  - Times New Roman 全内向刻度，无上/右刻度。
 - **运行命令**：
   ```bash
   python plot_parity_with_marginal_distributions.py --output parity_with_marginals_standard
   ```
 
+---
 
+### 7.12 Loss-Component Ablation Matrix Bar Chart (`plot_loss_ablation_matrix_bars.py`)
+
+- **适用场景**：多损失项/多模块渐进消融对比，每根柱体对应一个累积激活配置（`D` -> `D+P` -> `D+P+B` -> `D+P+B+S` -> `D+P+B+S+E`），直观展示每个组件对 CV R² 的增量贡献。
+- **核心视觉特征**：
+  - **顶部组件激活矩阵**：彩色格 = 激活，灰底 + 叉号 = 未激活；
+  - **柱宽自适应最宽标签**：测量 `"Boundary"` 渲染宽度 + 6 pt padding，与矩阵格等宽；
+  - **柱内竖排配置名**：`rotation=90`，白色加粗，嵌入柱底；
+  - **柱内顶部数值**：白色加粗显示 R² 值；
+  - **y 轴截断**：从约 0.898 起始，放大各配置间差异。
+- **配色（CCC 标准 5 阶蓝红）**：
+  ```python
+  BAR_COLORS = ["#2F6AB9", "#69AADB", "#97C6E6", "#EA7B7D", "#F14040"]
+  # 深海蓝(D) -> 浅蓝(+P) -> 冰蓝灰(+B) -> 珊瑚粉(+S) -> 绯红(+E)
+  # 与 CCC 6 阶标准一致（阶1,2,3,5,6；跳过阶4#F6B7B2）
+
+  COMPONENTS = [
+      ("Data",     "D", "#2F6AB9"),   # 阶1 深海蓝
+      ("Prior",    "P", "#69AADB"),   # 阶2 浅蓝
+      ("Boundary", "B", "#97C6E6"),   # 阶3 冰蓝灰
+      ("Shape",    "S", "#EA7B7D"),   # 阶5 珊瑚粉
+      ("Energy",   "E", "#F14040"),   # 阶6 绯红
+  ]
+  ```
+- **关键代码要点**：
+  ```python
+  # 1. 柱宽 = 最宽文字渲染宽度 + 6pt padding，与矩阵格精准对齐
+  probe = ax.text(0, 0, "Boundary", fontsize=6.7, fontweight="bold")
+  fig.canvas.draw()
+  bar_width = probe.get_window_extent(fig.canvas.get_renderer()).width * 72 / fig.dpi + 6.0
+  probe.remove()
+
+  # 2. 矩阵格绘制：激活->彩色；禁用->灰底 + 叉号（两条对角线）
+  for row, (name, code, color) in enumerate(COMPONENTS):
+      y = y0 + (len(COMPONENTS) - row - 1) * cell_h
+      enabled = code in set(config.split("+"))
+      rect = Rectangle((x - bar_width/2, y), bar_width, cell_h * 0.92,
+                        facecolor=color if enabled else "#E8EAED",
+                        edgecolor="#202124", linewidth=0.45, zorder=6)
+      ax.add_patch(rect)
+      ax.text(x, y + cell_h * 0.46, name, ha="center", va="center",
+              fontsize=6.7, fontweight="bold",
+              color="white" if enabled else "#777777", zorder=8)
+      if not enabled:
+          ix, iy = bar_width * 0.08, cell_h * 0.08
+          ax.plot([x-bar_width/2+ix, x+bar_width/2-ix], [y+iy, y+cell_h*0.92-iy],
+                  color="#969696", linewidth=0.8, alpha=0.75, zorder=7)
+          ax.plot([x-bar_width/2+ix, x+bar_width/2-ix], [y+cell_h*0.92-iy, y+iy],
+                  color="#969696", linewidth=0.8, alpha=0.75, zorder=7)
+
+  # 3. 柱体用 Rectangle patch（非 ax.bar），精确控制截断起点 ymin
+  bar = Rectangle((xi - bar_width/2, ymin), bar_width, value - ymin,
+                   facecolor=color, edgecolor="#202124", linewidth=0.45, zorder=3)
+  ax.add_patch(bar)
+  ```
+- **必要的 `rcParams`**：
+  ```python
+  plt.rcParams.update({
+      "font.family": "Times New Roman", "mathtext.fontset": "stix",
+      "font.size": 9, "axes.linewidth": 0.9,
+      "xtick.direction": "in", "ytick.direction": "in",
+      "pdf.fonttype": 42, "ps.fonttype": 42,
+  })
+  ```
+- **数据格式（CSV）**：
+  ```csv
+  config,cv_R2
+  D,0.9025
+  D+P,0.9111
+  D+P+B,0.9129
+  D+P+B+S,0.9122
+  D+P+B+S+E,0.9118
+  ```
+- **运行命令**：
+  ```bash
+  python plot_loss_ablation_matrix_bars.py
+  # 输出: Fig_final_loss_ablation.png / .pdf (600 dpi)
+  ```
+- **完整范例文件**：[`plot_loss_ablation_matrix_bars.py`](plot_loss_ablation_matrix_bars.py)（陈灿辉 Paper 3 冻融本构项目，已通过 Elsevier CCC 期刊出版验证）。

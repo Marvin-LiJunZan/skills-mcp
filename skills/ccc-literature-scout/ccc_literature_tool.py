@@ -56,7 +56,8 @@ class Paper:
         number: str = "",
         pages: str = "",
         publisher: str = "",
-        keywords: Optional[List[str]] = None
+        keywords: Optional[List[str]] = None,
+        pdf_url: str = ""
     ):
         self.title = self._clean_text(title)
         self.authors = [self._clean_text(a) for a in authors if a.strip()]
@@ -72,6 +73,7 @@ class Paper:
         self.pages = str(pages).strip()
         self.publisher = self._clean_text(publisher)
         self.keywords = keywords or []
+        self.pdf_url = pdf_url.strip() or (self.url if self.url.lower().endswith(".pdf") else "")
         self.bib_key = bib_key or self.generate_bib_key()
 
     @staticmethod
@@ -172,7 +174,8 @@ class Paper:
             "number": self.number,
             "pages": self.pages,
             "publisher": self.publisher,
-            "keywords": self.keywords
+            "keywords": self.keywords,
+            "pdf_url": self.pdf_url
         }
 
 
@@ -530,6 +533,402 @@ class CrossrefFetcher:
         return papers[:limit]
 
 
+class SemanticScholarFetcher:
+    """Fetches papers from Semantic Scholar Graph API (AI, CS, Life Sciences, etc.)."""
+    BASE_URL = "https://api.semanticscholar.org/graph/v1/paper/search"
+
+    @classmethod
+    def search(
+        cls,
+        query: str,
+        limit: int = 100,
+        api_key: Optional[str] = None,
+        year_min: Optional[int] = None,
+        year_max: Optional[int] = None
+    ) -> List[Paper]:
+        key = api_key or os.environ.get("SEMANTIC_SCHOLAR_API_KEY") or os.environ.get("PAPER_SEARCH_MCP_SEMANTIC_SCHOLAR_API_KEY") or ""
+        papers = []
+        offset = 0
+        batch_size = min(100, limit)
+
+        year_filter = ""
+        if year_min and year_max:
+            year_filter = f"{year_min}-{year_max}"
+        elif year_min:
+            year_filter = f"{year_min}-"
+        elif year_max:
+            year_filter = f"-{year_max}"
+
+        while len(papers) < limit:
+            cur_limit = min(batch_size, limit - len(papers))
+            params = {
+                "query": query,
+                "offset": offset,
+                "limit": cur_limit,
+                "fields": "title,authors,year,venue,publicationVenue,abstract,citationCount,externalIds,openAccessPdf,tldr"
+            }
+            if year_filter:
+                params["year"] = year_filter
+
+            url = f"{cls.BASE_URL}?{urllib.parse.urlencode(params)}"
+            headers = {
+                "User-Agent": "CCC-Literature-Scout (mailto:researcher@univ.edu)"
+            }
+            if key:
+                headers["x-api-key"] = key
+
+            req = urllib.request.Request(url, headers=headers)
+            try:
+                with urllib.request.urlopen(req, timeout=20) as resp:
+                    data = json.loads(resp.read().decode("utf-8"))
+                    items = data.get("data", [])
+                    if not items:
+                        break
+
+                    for item in items:
+                        title = item.get("title") or ""
+                        if not title:
+                            continue
+                        authors = [a.get("name", "") for a in item.get("authors", []) if a.get("name")]
+                        year = item.get("year")
+                        venue = item.get("venue") or (item.get("publicationVenue") or {}).get("name") or ""
+                        ext_ids = item.get("externalIds") or {}
+                        doi = ext_ids.get("DOI") or ""
+                        abstract = item.get("abstract") or ""
+                        tldr = (item.get("tldr") or {}).get("text")
+                        if tldr and (not abstract or len(abstract) < 60):
+                            abstract = f"[TLDR] {tldr}" if not abstract else f"{abstract} [TLDR: {tldr}]"
+                        citations = item.get("citationCount") or 0
+                        oa_pdf = (item.get("openAccessPdf") or {}).get("url") or ""
+                        paper_url = f"https://doi.org/{doi}" if doi else (f"https://www.semanticscholar.org/paper/{item.get('paperId')}" if item.get('paperId') else "")
+
+                        papers.append(Paper(
+                            title=title,
+                            authors=authors,
+                            year=year,
+                            journal=venue,
+                            doi=doi,
+                            abstract=abstract,
+                            url=paper_url,
+                            citations=citations,
+                            source="SemanticScholar",
+                            pdf_url=oa_pdf
+                        ))
+
+                    if len(items) < cur_limit or len(papers) >= limit:
+                        break
+                    offset += len(items)
+                    time.sleep(0.3)
+            except Exception:
+                break
+        return papers[:limit]
+
+
+class PubMedFetcher:
+    """Fetches papers from PubMed (NLM / NIH E-utilities API)."""
+    ESEARCH_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
+    EFETCH_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
+
+    @classmethod
+    def search(cls, query: str, limit: int = 50) -> List[Paper]:
+        papers = []
+        try:
+            params = {
+                "db": "pubmed",
+                "term": query,
+                "retmax": limit,
+                "retmode": "json",
+                "sort": "pub_date"
+            }
+            url = f"{cls.ESEARCH_URL}?{urllib.parse.urlencode(params)}"
+            req = urllib.request.Request(url, headers={"User-Agent": "CCC-Literature-Scout"})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            id_list = data.get("esearchresult", {}).get("idlist", [])
+            if not id_list:
+                return []
+
+            batch_ids = ",".join(id_list[:limit])
+            f_params = {
+                "db": "pubmed",
+                "id": batch_ids,
+                "retmode": "xml"
+            }
+            f_url = f"{cls.EFETCH_URL}?{urllib.parse.urlencode(f_params)}"
+            f_req = urllib.request.Request(f_url, headers={"User-Agent": "CCC-Literature-Scout"})
+            with urllib.request.urlopen(f_req, timeout=20) as resp:
+                xml_data = resp.read()
+
+            root = ET.fromstring(xml_data)
+            for article in root.findall(".//PubmedArticle"):
+                try:
+                    title_elem = article.find(".//ArticleTitle")
+                    title = "".join(title_elem.itertext()).strip() if title_elem is not None else ""
+                    if not title:
+                        continue
+                    authors = []
+                    for a in article.findall(".//Author"):
+                        ln = a.find("LastName")
+                        init = a.find("Initials")
+                        if ln is not None and ln.text:
+                            n = ln.text.strip()
+                            if init is not None and init.text:
+                                n += f" {init.text.strip()}"
+                            authors.append(n)
+                    
+                    year = None
+                    p_date = article.find(".//JournalIssue/PubDate/Year") or article.find(".//DateCompleted/Year")
+                    if p_date is not None and p_date.text and p_date.text.isdigit():
+                        year = int(p_date.text)
+
+                    journal_elem = article.find(".//Journal/Title") or article.find(".//Journal/ISOAbbreviation")
+                    journal = journal_elem.text.strip() if journal_elem is not None and journal_elem.text else "PubMed"
+
+                    doi = ""
+                    for eid in article.findall(".//ArticleId"):
+                        if eid.get("IdType") == "doi" and eid.text:
+                            doi = eid.text.strip()
+                            break
+
+                    pmid = ""
+                    pmid_elem = article.find(".//PMID")
+                    if pmid_elem is not None and pmid_elem.text:
+                        pmid = pmid_elem.text.strip()
+
+                    abstract_parts = []
+                    for ab_text in article.findall(".//AbstractText"):
+                        lbl = ab_text.get("Label")
+                        t = "".join(ab_text.itertext()).strip()
+                        if lbl:
+                            abstract_parts.append(f"{lbl}: {t}")
+                        else:
+                            abstract_parts.append(t)
+                    abstract = " ".join(abstract_parts)
+
+                    url = f"https://doi.org/{doi}" if doi else (f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/" if pmid else "")
+
+                    papers.append(Paper(
+                        title=title,
+                        authors=authors,
+                        year=year,
+                        journal=journal,
+                        doi=doi,
+                        abstract=abstract,
+                        url=url,
+                        citations=0,
+                        source="PubMed"
+                    ))
+                except Exception:
+                    continue
+        except Exception:
+            pass
+        return papers[:limit]
+
+
+class ChineseAcademicFetcher:
+    """Specialized fetcher for native Chinese academic queries (CJK auto-routing)."""
+    @classmethod
+    def is_chinese_query(cls, query: str) -> bool:
+        return bool(re.search(r'[\u4e00-\u9fa5]', query))
+
+    @classmethod
+    def search(cls, query: str, limit: int = 200, year_min: Optional[int] = None, year_max: Optional[int] = None) -> List[Paper]:
+        papers = []
+        try:
+            oa_papers = OpenAlexFetcher.search(query, limit=limit, year_min=year_min, year_max=year_max, verbose=False)
+            for p in oa_papers:
+                p.source = "OpenAlex_CN"
+            papers.extend(oa_papers)
+        except Exception:
+            pass
+
+        if len(papers) < limit:
+            try:
+                cr_papers = CrossrefFetcher.search(query, limit=min(100, limit - len(papers)))
+                for p in cr_papers:
+                    p.source = "Crossref_CN"
+                papers.extend(cr_papers)
+            except Exception:
+                pass
+
+        return papers[:limit]
+
+
+class MCPPlatformBridge:
+    """
+    Dynamic bridge connecting ccc-literature-scout to the 22+ academic platform
+    searchers in paper_search_mcp:
+    arxiv, pubmed, pmc, europepmc, biorxiv, medrxiv, chemrxiv, dblp, core, doaj,
+    openaire, citeseerx, base, zenodo, hal, ssrn, iacr, google_scholar, unpaywall,
+    ieee, acm.
+    """
+    _initialized = False
+    _searchers: Dict[str, Any] = {}
+    _available_sources: Set[str] = set()
+
+    @classmethod
+    def initialize(cls):
+        if cls._initialized:
+            return
+        cls._initialized = True
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        repo_mcp_paths = [
+            os.path.abspath(os.path.join(current_dir, "..", "..", "mcp", "paper-search-mcp")),
+            r"C:\JunzanLi_project\skills_mcp\mcp\paper-search-mcp",
+        ]
+        for mcp_path in repo_mcp_paths:
+            if os.path.isdir(mcp_path) and mcp_path not in sys.path:
+                sys.path.insert(0, mcp_path)
+                break
+
+    @classmethod
+    def get_searcher(cls, platform_name: str) -> Optional[Any]:
+        cls.initialize()
+        p_norm = platform_name.lower().strip()
+        if p_norm in cls._searchers:
+            return cls._searchers[p_norm]
+
+        try:
+            mod_map = {
+                "semantic": ("paper_search_mcp.academic_platforms.semantic", "SemanticSearcher"),
+                "pubmed": ("paper_search_mcp.academic_platforms.pubmed", "PubMedSearcher"),
+                "pmc": ("paper_search_mcp.academic_platforms.pmc", "PMCSearcher"),
+                "europepmc": ("paper_search_mcp.academic_platforms.europepmc", "EuropePMCSearcher"),
+                "biorxiv": ("paper_search_mcp.academic_platforms.biorxiv", "BioRxivSearcher"),
+                "medrxiv": ("paper_search_mcp.academic_platforms.medrxiv", "MedRxivSearcher"),
+                "chemrxiv": ("paper_search_mcp.academic_platforms.chemrxiv", "ChemRxivSearcher"),
+                "dblp": ("paper_search_mcp.academic_platforms.dblp", "DBLPSearcher"),
+                "core": ("paper_search_mcp.academic_platforms.core", "CORESearcher"),
+                "doaj": ("paper_search_mcp.academic_platforms.doaj", "DOAJSearcher"),
+                "openaire": ("paper_search_mcp.academic_platforms.openaire", "OpenAiresearcher"),
+                "citeseerx": ("paper_search_mcp.academic_platforms.citeseerx", "CiteSeerXSearcher"),
+                "base": ("paper_search_mcp.academic_platforms.base_search", "BASESearcher"),
+                "zenodo": ("paper_search_mcp.academic_platforms.zenodo", "ZenodoSearcher"),
+                "hal": ("paper_search_mcp.academic_platforms.hal", "HALSearcher"),
+                "ssrn": ("paper_search_mcp.academic_platforms.ssrn", "SSRNSearcher"),
+                "iacr": ("paper_search_mcp.academic_platforms.iacr", "IACRSearcher"),
+                "google_scholar": ("paper_search_mcp.academic_platforms.google_scholar", "GoogleScholarSearcher"),
+                "unpaywall": ("paper_search_mcp.academic_platforms.unpaywall", "UnpaywallSearcher"),
+                "ieee": ("paper_search_mcp.academic_platforms.ieee", "IEEESearcher"),
+                "acm": ("paper_search_mcp.academic_platforms.acm", "ACMSearcher"),
+            }
+
+            if p_norm in mod_map:
+                mod_name, cls_name = mod_map[p_norm]
+                mod = __import__(mod_name, fromlist=[cls_name])
+                inst = getattr(mod, cls_name)()
+                cls._searchers[p_norm] = inst
+                cls._available_sources.add(p_norm)
+                return inst
+        except Exception:
+            return None
+        return None
+
+    @classmethod
+    def search(cls, platform_name: str, query: str, limit: int = 50, **kwargs) -> List[Paper]:
+        searcher = cls.get_searcher(platform_name)
+        if not searcher:
+            return []
+        try:
+            mcp_papers = searcher.search(query, max_results=limit, **kwargs)
+            results = []
+            for p in mcp_papers:
+                converted = cls.convert_mcp_paper(p, platform_name)
+                if converted:
+                    results.append(converted)
+            return results
+        except Exception:
+            return []
+
+    @classmethod
+    def convert_mcp_paper(cls, p: Any, source_label: str) -> Optional[Paper]:
+        if not p or not getattr(p, "title", None):
+            return None
+        
+        year = None
+        p_date = getattr(p, "published_date", None)
+        if p_date and hasattr(p_date, "year"):
+            year = p_date.year
+        if not year and hasattr(p, "extra") and isinstance(p.extra, dict):
+            y_extra = p.extra.get("year")
+            if y_extra and str(y_extra).isdigit():
+                year = int(y_extra)
+
+        journal = ""
+        if hasattr(p, "extra") and isinstance(p.extra, dict):
+            journal = p.extra.get("venue") or p.extra.get("journal") or p.extra.get("sourceTitle") or ""
+        if not journal:
+            journal = source_label.upper()
+
+        url = getattr(p, "url", "") or getattr(p, "pdf_url", "")
+        pdf_url = getattr(p, "pdf_url", "")
+        citations = getattr(p, "citations", 0)
+        keywords = getattr(p, "keywords", [])
+
+        return Paper(
+            title=p.title,
+            authors=getattr(p, "authors", []),
+            year=year,
+            journal=journal,
+            doi=getattr(p, "doi", ""),
+            abstract=getattr(p, "abstract", ""),
+            url=url,
+            citations=citations,
+            source=f"MCP_{source_label.upper()}",
+            keywords=keywords,
+            pdf_url=pdf_url
+        )
+
+
+class PDFDownloadBridge:
+    """Downloads open-access PDFs to supply ccc-paper-converter with raw literature files."""
+    @classmethod
+    def download_papers(cls, papers: List[Paper], output_dir: str, max_count: int = 20) -> List[str]:
+        os.makedirs(output_dir, exist_ok=True)
+        downloaded_paths = []
+        count = 0
+
+        for p in papers:
+            if count >= max_count:
+                break
+            pdf_url = getattr(p, "pdf_url", "") or ""
+            if not pdf_url:
+                if p.url.lower().endswith(".pdf"):
+                    pdf_url = p.url
+                elif "arxiv.org/abs/" in p.url:
+                    pdf_url = p.url.replace("/abs/", "/pdf/") + ".pdf"
+                elif "biorxiv.org/content/" in p.url and not p.url.endswith(".full.pdf"):
+                    pdf_url = f"{p.url.rstrip('/')}.full.pdf"
+
+            if not pdf_url:
+                continue
+
+            safe_key = re.sub(r'[^a-zA-Z0-9_-]', '_', p.bib_key)
+            dest_file = os.path.join(output_dir, f"{safe_key}.pdf")
+            if os.path.exists(dest_file):
+                downloaded_paths.append(dest_file)
+                count += 1
+                continue
+
+            try:
+                req = urllib.request.Request(
+                    pdf_url,
+                    headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+                )
+                with urllib.request.urlopen(req, timeout=25) as resp:
+                    content_type = resp.headers.get("Content-Type", "").lower()
+                    data = resp.read()
+                    if b"%PDF" in data[:1024] or "pdf" in content_type:
+                        with open(dest_file, "wb") as f_out:
+                            f_out.write(data)
+                        downloaded_paths.append(dest_file)
+                        count += 1
+            except Exception:
+                continue
+
+        return downloaded_paths
+
+
 # ==============================================================================
 # Web of Science & EndNote Export Parsers
 # ==============================================================================
@@ -796,7 +1195,7 @@ class LiteratureCorpus:
 
     def export_matrix_csv(self, output_path: str):
         import csv
-        fieldnames = ["BibKey", "Title", "Authors", "Year", "Journal", "Citations", "DOI", "HasAbstract", "Source", "Abstract"]
+        fieldnames = ["BibKey", "Title", "Authors", "Year", "Journal", "Citations", "DOI", "PdfURL", "HasAbstract", "Source", "Abstract"]
         with open(output_path, "w", encoding="utf-8-sig", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
@@ -809,6 +1208,7 @@ class LiteratureCorpus:
                     "Journal": p.journal,
                     "Citations": p.citations,
                     "DOI": p.doi,
+                    "PdfURL": p.pdf_url,
                     "HasAbstract": "Yes" if len(p.abstract) > 30 else "No",
                     "Source": p.source,
                     "Abstract": p.abstract
@@ -1131,6 +1531,43 @@ class AcademicIntroGenerator:
 # Stage 1 & Stage 2 Execution Controllers
 # ==============================================================================
 
+PRESET_SOURCE_GROUPS = {
+    "all": [
+        "wos", "openalex", "semantic", "arxiv", "crossref", "pubmed",
+        "pmc", "europepmc", "biorxiv", "medrxiv", "chemrxiv", "dblp",
+        "core", "doaj", "openaire", "zenodo", "hal", "ssrn"
+    ],
+    "default": [
+        "wos", "openalex", "semantic", "arxiv", "crossref", "pubmed", "dblp"
+    ],
+    "cs": [
+        "semantic", "dblp", "arxiv", "openalex", "crossref", "wos", "ieee", "acm"
+    ],
+    "biomedical": [
+        "pubmed", "pmc", "europepmc", "biorxiv", "medrxiv", "openalex", "crossref", "wos"
+    ],
+    "materials": [
+        "wos", "openalex", "chemrxiv", "crossref", "arxiv", "core", "doaj"
+    ],
+    "chinese": [
+        "chinese", "openalex", "crossref", "wos"
+    ]
+}
+
+
+def _resolve_sources(sources_spec: str, is_chinese: bool = False) -> List[str]:
+    spec = (sources_spec or "all").lower().strip()
+    if spec in PRESET_SOURCE_GROUPS:
+        selected = list(PRESET_SOURCE_GROUPS[spec])
+    else:
+        selected = [s.strip().lower() for s in spec.split(",") if s.strip()]
+
+    if is_chinese and "chinese" not in selected:
+        selected.insert(0, "chinese")
+
+    return selected
+
+
 def slugify_keyword(keyword: str) -> str:
     slug = re.sub(r'[^a-zA-Z0-9\u4e00-\u9fa5]+', '_', keyword.strip()).strip('_')
     return slug[:50] or "keyword"
@@ -1140,14 +1577,19 @@ def stage1_fetch_keywords(
     keywords: List[str],
     output_dir: str,
     limit_per_kw: int = 1000,
+    sources: str = "all",
     wos_api_key: Optional[str] = None,
     wos_dir: Optional[str] = None,
+    semantic_api_key: Optional[str] = None,
     year_min: Optional[int] = None,
-    year_max: Optional[int] = None
+    year_max: Optional[int] = None,
+    download_oa_pdfs: bool = False,
+    max_pdfs_per_kw: int = 20
 ) -> List[str]:
     """
-    STAGE 1: Executes massive-scale retrieval per keyword (up to 1000 papers each).
+    STAGE 1: Executes massive-scale retrieval per keyword across 25+ academic databases.
     Outputs one dedicated '<slug>.bib' and '<slug>_matrix.csv' for each keyword.
+    Optionally downloads open-access PDFs into '<output_dir>/pdfs/<slug>/'.
     Returns list of generated .bib file paths.
     """
     bib_dir = os.path.join(output_dir, "bib_by_keyword")
@@ -1155,7 +1597,7 @@ def stage1_fetch_keywords(
     generated_bibs = []
 
     print(f"\n{'='*75}")
-    print(f"📦 [STAGE 1] Massive Literature Retrieval (Limit: {limit_per_kw} papers/keyword)")
+    print(f"📦 [STAGE 1] Multi-Source Academic Retrieval (Limit: {limit_per_kw} papers/keyword)")
     print(f"{'='*75}")
     print(f"📂 Output Folder for Keyword Bibs: {bib_dir}")
 
@@ -1171,47 +1613,102 @@ def stage1_fetch_keywords(
         bib_file = os.path.join(bib_dir, f"{slug}.bib")
         csv_file = os.path.join(bib_dir, f"{slug}_matrix.csv")
         
+        is_cjk = ChineseAcademicFetcher.is_chinese_query(kw)
+        active_sources = _resolve_sources(sources, is_chinese=is_cjk)
+
         print(f"\n[{i}/{len(keywords)}] 🔍 Fetching keyword: '{kw}' (Target: max {limit_per_kw} papers)...")
+        print(f"      - Active source pipeline: {', '.join(active_sources)}")
         kw_corpus = LiteratureCorpus()
 
-        # 1. WoS API (Clarivate Starter API)
-        wos_key = wos_api_key or os.environ.get("WOS_API_KEY") or "46a27738d76806c95a4a2797cdada4126ff8f800"
-        if wos_key:
-            print(f"      - Querying Web of Science Clarivate API...")
-            wos_api_results = WoSClarivateFetcher.search(kw, limit=limit_per_kw, api_key=wos_key)
-            added_wos = kw_corpus.add_papers(wos_api_results)
-            print(f"        -> WoS API: {len(wos_api_results)} records (Added {added_wos})")
+        for src in active_sources:
+            needed = limit_per_kw - len(kw_corpus.papers)
+            if needed <= 0:
+                break
 
-        # 2. WoS Directory matches
-        if wos_papers_pool:
-            matched_wos = [p for p in wos_papers_pool if kw.lower() in (p.title + " " + p.abstract).lower()]
-            added_pool = kw_corpus.add_papers(matched_wos)
-            if added_pool > 0:
-                print(f"        -> WoS Local Exports: Matched and added {added_pool} papers")
+            if src == "wos":
+                wos_key = wos_api_key or os.environ.get("WOS_API_KEY") or "46a27738d76806c95a4a2797cdada4126ff8f800"
+                if wos_key:
+                    try:
+                        print(f"      - Querying Web of Science Clarivate API...")
+                        wos_api_results = WoSClarivateFetcher.search(kw, limit=min(limit_per_kw, needed), api_key=wos_key)
+                        added_wos = kw_corpus.add_papers(wos_api_results)
+                        print(f"        -> WoS API: {len(wos_api_results)} records (Added {added_wos})")
+                    except Exception as e:
+                        print(f"        [WoS API] Note: {e}")
 
-        # 3. OpenAlex massive pagination (250M catalog)
-        needed = limit_per_kw - len(kw_corpus.papers)
-        if needed > 0:
-            print(f"      - Querying OpenAlex Catalog (paginating up to {needed} items)...")
-            oa_results = OpenAlexFetcher.search(kw, limit=needed, year_min=year_min, year_max=year_max, verbose=True)
-            added_oa = kw_corpus.add_papers(oa_results)
-            print(f"        -> OpenAlex: retrieved {len(oa_results)} works (Added {added_oa})")
+                if wos_papers_pool:
+                    matched_wos = [p for p in wos_papers_pool if kw.lower() in (p.title + " " + p.abstract).lower()]
+                    added_pool = kw_corpus.add_papers(matched_wos)
+                    if added_pool > 0:
+                        print(f"        -> WoS Local Exports: Matched and added {added_pool} papers")
 
-        # 4. arXiv supplement
-        needed = limit_per_kw - len(kw_corpus.papers)
-        if needed > 0:
-            arxiv_results = ArxivFetcher.search(kw, limit=min(100, needed))
-            added_arxiv = kw_corpus.add_papers(arxiv_results)
-            if added_arxiv > 0:
-                print(f"        -> arXiv: retrieved {len(arxiv_results)} preprints (Added {added_arxiv})")
+            elif src == "openalex":
+                try:
+                    print(f"      - Querying OpenAlex Catalog (paginating up to {needed} items)...")
+                    oa_results = OpenAlexFetcher.search(kw, limit=needed, year_min=year_min, year_max=year_max, verbose=False)
+                    added_oa = kw_corpus.add_papers(oa_results)
+                    print(f"        -> OpenAlex: retrieved {len(oa_results)} works (Added {added_oa})")
+                except Exception as e:
+                    print(f"        [OpenAlex] Note: {e}")
 
-        # 5. Crossref supplement
-        needed = limit_per_kw - len(kw_corpus.papers)
-        if needed > 0:
-            cr_results = CrossrefFetcher.search(kw, limit=min(100, needed))
-            added_cr = kw_corpus.add_papers(cr_results)
-            if added_cr > 0:
-                print(f"        -> Crossref: retrieved {len(cr_results)} works (Added {added_cr})")
+            elif src == "semantic":
+                try:
+                    print(f"      - Querying Semantic Scholar API...")
+                    sem_results = SemanticScholarFetcher.search(kw, limit=min(100, needed), api_key=semantic_api_key, year_min=year_min, year_max=year_max)
+                    if not sem_results:
+                        sem_results = MCPPlatformBridge.search("semantic", kw, limit=min(50, needed))
+                    added_sem = kw_corpus.add_papers(sem_results)
+                    print(f"        -> Semantic Scholar: retrieved {len(sem_results)} works (Added {added_sem})")
+                except Exception as e:
+                    print(f"        [Semantic Scholar] Note: {e}")
+
+            elif src == "arxiv":
+                try:
+                    arxiv_results = ArxivFetcher.search(kw, limit=min(100, needed))
+                    added_arxiv = kw_corpus.add_papers(arxiv_results)
+                    if added_arxiv > 0:
+                        print(f"        -> arXiv: retrieved {len(arxiv_results)} preprints (Added {added_arxiv})")
+                except Exception as e:
+                    print(f"        [arXiv] Note: {e}")
+
+            elif src == "crossref":
+                try:
+                    cr_results = CrossrefFetcher.search(kw, limit=min(100, needed))
+                    added_cr = kw_corpus.add_papers(cr_results)
+                    if added_cr > 0:
+                        print(f"        -> Crossref: retrieved {len(cr_results)} works (Added {added_cr})")
+                except Exception as e:
+                    print(f"        [Crossref] Note: {e}")
+
+            elif src == "pubmed":
+                try:
+                    pm_results = PubMedFetcher.search(kw, limit=min(50, needed))
+                    if not pm_results:
+                        pm_results = MCPPlatformBridge.search("pubmed", kw, limit=min(50, needed))
+                    added_pm = kw_corpus.add_papers(pm_results)
+                    if added_pm > 0:
+                        print(f"        -> PubMed: retrieved {len(pm_results)} papers (Added {added_pm})")
+                except Exception as e:
+                    print(f"        [PubMed] Note: {e}")
+
+            elif src == "chinese":
+                try:
+                    cn_results = ChineseAcademicFetcher.search(kw, limit=min(200, needed), year_min=year_min, year_max=year_max)
+                    added_cn = kw_corpus.add_papers(cn_results)
+                    if added_cn > 0:
+                        print(f"        -> Chinese Academic Sources: retrieved {len(cn_results)} records (Added {added_cn})")
+                except Exception as e:
+                    print(f"        [Chinese Academic] Note: {e}")
+
+            else:
+                try:
+                    mcp_results = MCPPlatformBridge.search(src, kw, limit=min(50, needed))
+                    if mcp_results:
+                        added_mcp = kw_corpus.add_papers(mcp_results)
+                        if added_mcp > 0:
+                            print(f"        -> [{src.upper()}]: retrieved {len(mcp_results)} records (Added {added_mcp})")
+                except Exception:
+                    pass
 
         # Sort and export keyword bib
         kw_corpus.sort_by("citations_desc")
@@ -1221,6 +1718,13 @@ def stage1_fetch_keywords(
 
         print(f"      ✅ Saved {len(kw_corpus.papers)} papers to: {os.path.basename(bib_file)}")
         print(f"      ✅ Saved matrix to: {os.path.basename(csv_file)}")
+
+        # Optional OA PDF downloading for ccc-paper-converter
+        if download_oa_pdfs:
+            pdf_out_dir = os.path.join(output_dir, "pdfs", slug)
+            downloaded = PDFDownloadBridge.download_papers(kw_corpus.papers, pdf_out_dir, max_count=max_pdfs_per_kw)
+            if downloaded:
+                print(f"      📥 Downloaded {len(downloaded)} open-access PDFs to: {os.path.relpath(pdf_out_dir, output_dir)}")
 
     print(f"\n🎉 [STAGE 1 COMPLETE] Generated {len(generated_bibs)} individual keyword BibTeX files.")
     return generated_bibs
@@ -1310,22 +1814,30 @@ def run_full_pipeline(
     topic: str,
     output_dir: str,
     limit_per_kw: int = 1000,
+    sources: str = "all",
     wos_api_key: Optional[str] = None,
     wos_dir: Optional[str] = None,
+    semantic_api_key: Optional[str] = None,
     year_min: Optional[int] = None,
     year_max: Optional[int] = None,
     method_name: str = "the proposed hierarchical implicit framework",
-    lang: str = "en"
+    lang: str = "en",
+    download_oa_pdfs: bool = False,
+    max_pdfs_per_kw: int = 20
 ):
     """Executes Stage 1 followed immediately by Stage 2."""
     bib_files = stage1_fetch_keywords(
         keywords=keywords,
         output_dir=output_dir,
         limit_per_kw=limit_per_kw,
+        sources=sources,
         wos_api_key=wos_api_key,
         wos_dir=wos_dir,
+        semantic_api_key=semantic_api_key,
         year_min=year_min,
-        year_max=year_max
+        year_max=year_max,
+        download_oa_pdfs=download_oa_pdfs,
+        max_pdfs_per_kw=max_pdfs_per_kw
     )
 
     stage2_synthesize_introduction(
@@ -1343,32 +1855,40 @@ def run_full_pipeline(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="CCC Literature Scout V2: 2-Stage Massive Academic Retrieval (up to 1000 papers/kw) & Introduction Synthesizer."
+        description="CCC Literature Scout V3: Massive Academic Retrieval Across 25+ Databases & 5-Stage Introduction Synthesizer."
     )
     subparsers = parser.add_subparsers(dest="command", help="Available execution modes")
 
     # Command: pipeline (Stage 1 + Stage 2)
-    p_pipe = subparsers.add_parser("pipeline", help="Run full 2-stage pipeline: fetch 1000 papers/keyword to separate bibs, then synthesize introduction.")
+    p_pipe = subparsers.add_parser("pipeline", help="Run full 2-stage pipeline: multi-source retrieval to separate bibs, then synthesize introduction.")
     p_pipe.add_argument("--keywords", "-k", nargs="+", required=True, help="List of keyword phrases.")
     p_pipe.add_argument("--topic", "-t", required=True, help="Paper research topic / title.")
     p_pipe.add_argument("--output-dir", "-o", default="./literature_out", help="Root output directory.")
     p_pipe.add_argument("--limit", "-l", type=int, default=1000, help="Max papers per keyword (default: 1000).")
+    p_pipe.add_argument("--sources", "-s", default="all", help="Sources to query: 'all', 'default', 'cs', 'biomedical', 'materials', 'chinese', or comma-separated list.")
     p_pipe.add_argument("--wos-api-key", default=None, help="Clarivate Web of Science API Key.")
     p_pipe.add_argument("--wos-dir", default=None, help="Directory containing campus Web of Science export files (.ciw, .txt, .bib).")
+    p_pipe.add_argument("--semantic-key", default=None, help="Semantic Scholar API Key.")
     p_pipe.add_argument("--year-min", type=int, default=None, help="Earliest publication year.")
     p_pipe.add_argument("--year-max", type=int, default=None, help="Latest publication year.")
     p_pipe.add_argument("--method-name", default="the proposed hierarchical implicit framework", help="Proposed framework name.")
     p_pipe.add_argument("--lang", choices=["en", "zh"], default="en", help="Language (en or zh).")
+    p_pipe.add_argument("--download-oa-pdfs", action="store_true", help="Download open-access PDFs into <output_dir>/pdfs/ for ccc-paper-converter.")
+    p_pipe.add_argument("--max-pdfs", type=int, default=20, help="Max PDFs to download per keyword (default: 20).")
 
     # Command: stage1-fetch
-    p_s1 = subparsers.add_parser("stage1-fetch", help="Stage 1 ONLY: Fetch up to 1000 papers per keyword and save one bib file per keyword.")
+    p_s1 = subparsers.add_parser("stage1-fetch", help="Stage 1 ONLY: Fetch up to 1000 papers per keyword across sources and save one bib file per keyword.")
     p_s1.add_argument("--keywords", "-k", nargs="+", required=True, help="List of keywords.")
     p_s1.add_argument("--output-dir", "-o", default="./literature_out", help="Output directory.")
     p_s1.add_argument("--limit", "-l", type=int, default=1000, help="Max papers per keyword (default: 1000).")
+    p_s1.add_argument("--sources", "-s", default="all", help="Sources: 'all', 'default', 'cs', 'biomedical', 'materials', 'chinese', or comma-separated.")
     p_s1.add_argument("--wos-api-key", default=None, help="Clarivate API key.")
     p_s1.add_argument("--wos-dir", default=None, help="Directory with WoS exports.")
+    p_s1.add_argument("--semantic-key", default=None, help="Semantic Scholar API Key.")
     p_s1.add_argument("--year-min", type=int, default=None, help="Earliest year.")
     p_s1.add_argument("--year-max", type=int, default=None, help="Latest year.")
+    p_s1.add_argument("--download-oa-pdfs", action="store_true", help="Download open-access PDFs into <output_dir>/pdfs/ for ccc-paper-converter.")
+    p_s1.add_argument("--max-pdfs", type=int, default=20, help="Max PDFs to download per keyword (default: 20).")
 
     # Command: stage2-synthesize
     p_s2 = subparsers.add_parser("stage2-synthesize", help="Stage 2 ONLY: Ingest all keyword bib files, synthesize corpus, and write Introduction.")
@@ -1386,22 +1906,30 @@ def main():
             topic=args.topic,
             output_dir=args.output_dir,
             limit_per_kw=args.limit,
+            sources=args.sources,
             wos_api_key=args.wos_api_key,
             wos_dir=args.wos_dir,
+            semantic_api_key=args.semantic_key,
             year_min=args.year_min,
             year_max=args.year_max,
             method_name=args.method_name,
-            lang=args.lang
+            lang=args.lang,
+            download_oa_pdfs=args.download_oa_pdfs,
+            max_pdfs_per_kw=args.max_pdfs
         )
     elif args.command == "stage1-fetch":
         stage1_fetch_keywords(
             keywords=args.keywords,
             output_dir=args.output_dir,
             limit_per_kw=args.limit,
+            sources=args.sources,
             wos_api_key=args.wos_api_key,
             wos_dir=args.wos_dir,
+            semantic_api_key=args.semantic_key,
             year_min=args.year_min,
-            year_max=args.year_max
+            year_max=args.year_max,
+            download_oa_pdfs=args.download_oa_pdfs,
+            max_pdfs_per_kw=args.max_pdfs
         )
     elif args.command == "stage2-synthesize":
         stage2_synthesize_introduction(

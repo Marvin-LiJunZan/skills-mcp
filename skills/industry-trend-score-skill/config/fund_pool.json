@@ -1,0 +1,45 @@
+{
+  "宽基": [
+    {"subcategory": "沪深300", "slug": "hs300", "thscode": "005248.OF", "ticker": "005248", "fund_name": "沪深300A", "fund_type": "otc"},
+    {"subcategory": "上证50", "slug": "sz50", "thscode": "007379.OF", "ticker": "007379", "fund_name": "上证50A", "fund_type": "otc"},
+    {"subcategory": "中证500", "slug": "zz500", "thscode": "001556.OF", "ticker": "001556", "fund_name": "中证500A", "fund_type": "otc"},
+    {"subcategory": "创业板", "slug": "gem", "thscode": "003765.OF", "ticker": "003765", "fund_name": "广发创业板A", "fund_type": "otc"},
+    {"subcategory": "科创50", "slug": "kc50", "thscode": "011608.OF", "ticker": "011608", "fund_name": "科创50A", "fund_type": "otc"},
+    {"subcategory": "中证800", "slug": "zz800", "thscode": "001588.OF", "ticker": "001588", "fund_name": "中证800A", "fund_type": "otc"},
+    {"subcategory": "中证A500", "slug": "zza500", "thscode": "022428.OF", "ticker": "022428", "fund_name": "A500A", "fund_type": "otc"},
+    {"subcategory": "中证红利", "slug": "csi-dividend", "thscode": "100032.OF", "ticker": "100032", "fund_name": "富国中证红利A", "fund_type": "otc"}
+  ],
+  "行业": [
+    {"subcategory": "银行", "thscode": "011971.OF", "ticker": "011971", "fund_name": "东财银行指数A", "fund_type": "otc"},
+    {"subcategory": "证券", "thscode": "012362.OF", "ticker": "012362", "fund_name": "证券A", "fund_type": "otc"},
+    {"subcategory": "保险", "thscode": "012605.OF", "ticker": "012605", "fund_name": "保险A", "fund_type": "otc"},
+    {"subcategory": "食品饮料", "thscode": "001631.OF", "ticker": "001631", "fund_name": "天弘食品饮料A", "fund_type": "otc"},
+    {"subcategory": "家电", "thscode": "008713.OF", "ticker": "008713", "fund_name": "家电ETFA", "fund_type": "otc"},
+    {"subcategory": "农业", "thscode": "010769.OF", "ticker": "010769", "fund_name": "农业A", "fund_type": "otc"},
+    {"subcategory": "医药", "thscode": "007883.OF", "ticker": "007883", "fund_name": "医药C", "fund_type": "otc"},
+    {"subcategory": "煤炭", "thscode": "008279.OF", "ticker": "008279", "fund_name": "煤炭A", "fund_type": "otc"},
+    {"subcategory": "有色", "thscode": "011630.OF", "ticker": "011630", "fund_name": "东财有色增强A", "fund_type": "otc"},
+    {"subcategory": "钢铁", "thscode": "008189.OF", "ticker": "008189", "fund_name": "钢铁A", "fund_type": "otc"},
+    {"subcategory": "化工", "thscode": "012537.OF", "ticker": "012537", "fund_name": "化工A", "fund_type": "otc"},
+    {"subcategory": "汽车", "thscode": "006233.OF", "ticker": "006233", "fund_name": "汽车A", "fund_type": "otc"},
+    {"subcategory": "机械", "thscode": "020903.OF", "ticker": "020903", "fund_name": "机械A", "fund_type": "otc"},
+    {"subcategory": "军工", "thscode": "013035.OF", "ticker": "013035", "fund_name": "富国军工指数C", "fund_type": "otc"},
+    {"subcategory": "电子", "thscode": "012550.OF", "ticker": "012550", "fund_name": "华宝电子ETF联接A", "fund_type": "otc"},
+    {"subcategory": "计算机", "thscode": "160224.OF", "ticker": "160224", "fund_name": "国泰计算机ETF联接A", "fund_type": "otc"},
+    {"subcategory": "通信", "thscode": "007817.OF", "ticker": "007817", "fund_name": "通信A", "fund_type": "otc"},
+    {"subcategory": "传媒", "thscode": "010677.OF", "ticker": "010677", "fund_name": "工银传媒指数C", "fund_type": "otc"},
+    {"subcategory": "半导体", "thscode": "008887.OF", "ticker": "008887", "fund_name": "半导体A", "fund_type": "otc"},
+    {"subcategory": "电力", "thscode": "016185.OF", "ticker": "016185", "fund_name": "电力A", "fund_type": "otc"},
+    {"subcategory": "房地产", "thscode": "008088.OF", "ticker": "008088", "fund_name": "房地产A", "fund_type": "otc"},
+    {"subcategory": "光伏", "thscode": "011102.OF", "ticker": "011102", "fund_name": "光伏A", "fund_type": "otc"},
+    {"subcategory": "锂电", "thscode": "012862.OF", "ticker": "012862", "fund_name": "电池A", "fund_type": "otc"},
+    {"subcategory": "机器人", "thscode": "014880.OF", "ticker": "014880", "fund_name": "机器人A", "fund_type": "otc"},
+    {"subcategory": "人工智能", "thscode": "008585.OF", "ticker": "008585", "fund_name": "AI智能A", "fund_type": "otc"},
+    {"subcategory": "国企改革", "thscode": "007788.OF", "ticker": "007788", "fund_name": "国企A", "fund_type": "otc"}
+  ],
+  "商品": [
+    {"subcategory": "黄金", "slug": "gold", "thscode": "008142.OF", "ticker": "008142", "fund_name": "黄金A", "fund_type": "otc"},
+    {"subcategory": "豆粕", "slug": "soybean-meal", "thscode": "007937.OF", "ticker": "007937", "fund_name": "豆粕A", "fund_type": "otc"},
+    {"subcategory": "原油", "slug": "oil", "thscode": "014982.OF", "ticker": "014982", "fund_name": "华安标普石油C", "fund_type": "otc"}
+  ]
+}
