@@ -1,6 +1,6 @@
 ---
 name: quant-trading-skills
-description: Comprehensive quantitative investment and algorithmic trading suite distilled from foundational works ("Factor Investing: Methods and Practice" by Ishikawa et al., "Quantitative Trading" by Ernest P. Chan, and "Quantitative Investment: Strategies and Technology" by Ding Peng). Use when developing, testing, auditing, or optimizing quant strategies, calculating factor IC/IR, running Fama-MacBeth HAC regressions, performing GRS tests, fixing look-ahead/p-hacking biases, building Barra risk models, trading cointegrated pairs via Kalman filter, sizing positions via Half-Kelly, or implementing VWAP execution algorithms.
+description: 'Comprehensive quantitative investment and algorithmic trading suite distilled from foundational works ("Factor Investing: Methods and Practice" by Ishikawa et al., "Quantitative Trading" by Ernest P. Chan, and "Quantitative Investment: Strategies and Technology" by Ding Peng). Use when developing, testing, auditing, or optimizing quant strategies, calculating factor IC/IR, running Fama-MacBeth HAC regressions, performing GRS tests, fixing look-ahead/p-hacking biases, building Barra risk models, trading cointegrated pairs via Kalman filter, sizing positions via Half-Kelly, or implementing VWAP execution algorithms.'
 ---
 
 # Quant Trading Skills · 现代量化投资与算法交易专家系统

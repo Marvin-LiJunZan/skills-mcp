@@ -1,185 +1,141 @@
 ---
 name: anti-defensive-writing
-description: Reduce defensive writing in drafts and revisions by removing unnecessary caveats, disclaimers, hedges, apology-like framing, negative self-limiting statements, and over-explanations while preserving necessary scope, accuracy, safety, legal, ethical, and methodological limits. Use when drafting or revising academic writing, papers, essays, abstracts, introductions, contribution statements, discussions, conclusions, technical explanations, grant writing, product writing, policy writing, professional reports, or any text the user wants to be clearer, stronger, more direct, more concise, more confident, less verbose, less caveated, less apologetic, or less defensive.
+description: >
+  论文写作、修改、压缩、去AI味和实验组织全流程中阻止【防御性写作】。把论文视为一场学术发布会，
+  而不是项目总结、实验日志或自我审查报告：识别这项工作最值得发表的价值，围绕它建立
+  最有利、最完整、最有说服力的叙事。不平均展示、不主动示弱、不写实验流水账、不替审稿人攻击自己。
+  当用户要求“去AI味”、“去防御性写作”、“消除AI腔调”、“改写心虚语气”或“调用ccc-skills来去AI味”时无条件触发本规范。
+metadata:
+  short-description: Anti-Defensive Writing & Academic De-AI Polish Engine
 ---
 
-# Anti-Defensive Writing
+# Anti-Defensive Writing · 去防御性写作与去 AI 味核心规范
 
-## Core Rule
+> **核心一句话原则**：  
+> **论文是一场学术发布会（Press Conference），不是项目总结（Project Summary）、实验日志或自我审查报告。**  
+> 你的任务不是平均呈现这项工作的所有方面，而是识别其中最值得发表的独特价值，并围绕这一价值建立最有利、最完整、最有说服力的学术叙事。
 
-Advance the claim directly.
+---
 
-Say what is true, what the text argues, what the evidence shows, or what the method does. Do not default to explaining what the text does not claim, does not prove, does not imply, does not cover, or does not attempt.
+## 触发机制与联动声明
+- **专属触发指令**：
+  - “**调用 ccc-skills 来去 AI 味**”
+  - “**去防御性写作**” / “**消除 AI 腔调**” / “**论文去 AI 味**”
+  - “**用发布会原则改一下**” / “**别递刀子给审稿人**” / “**导师圈红字专项修改**”
+- **深度整合进入 CCC 与中文去 AI 味生态**：与 `ccc-journal-guides`、`ccc-author-guide`、`human-writing` 以及 `humanizer-zh`（含 15 阶学术去 AI 味实战规范 `academic-15-rules.md`）协同执行。
 
-Use a calm, competent authorial posture. Write as an author explaining an argument to the reader, not as an author negotiating with an imagined critic.
+---
 
-## Preserve Necessary Precision
+## 一、 六大核心叙事规则
 
-Keep limitations when they are necessary for accuracy, ethics, law, safety, or methodological transparency.
+1. **只围绕优势组织论文**：
+   - 优先寻找本文真正领先、独特或不可替代的维度：新物理机制、新工程能力、新实验现象、更强环境适应性、更低计算成本、更高精度或工程关键权衡（Trade-off）。
+   - 没有形成优势的内容，绝不进入正文主线。
 
-A limitation is necessary when it affects:
+2. **坚决不写成工作汇报**：
+   - 严禁按“我们先做了什么、后来尝试了什么、哪些失败了”的时间线展开。
+   - 只保留最终成立的严密学术逻辑：**工程/物理问题为什么关键 $\rightarrow$ 现有方法为什么缺位 $\rightarrow$ 本文提出了什么新解法 $\rightarrow$ 证据如何牢固支持**。
+
+3. **打不赢的维度，绝不设为比赛项目**：
+   - 某指标不占优势，就绝不要把论文核心叙事建立在该指标上。
+   - 重新定义更能体现本文价值的应用场景、评价口径、物理边界或约束条件。明确本文赢得的是另一场更有工程意义的比赛。
+
+4. **优势必须明确、坚定地说出来**：
+   - 不要期待审稿人自己从密集表格中寻找贡献。主动直球解释：在何种工况下表现最好、机理何在、解决了什么实际工程瓶颈、为什么重要。
+
+5. **严格控制比较范围，追求证据自洽**：
+   - 不盲目追求“所有数据集、所有指标全面领先”（过于绝对反招审稿人围剿）。只提出证据能牢固支撑的主张。
+   - 论文说服力来自**主张与证据的高度单调一致**，而不是堆砌比较项。
+
+6. **允许彻底重构故事架构**：
+   - 现有结果无法支撑原始设想时，不要围绕原假说被动防守。允许重新定义工程问题、重排贡献次序、重选主结果图表。故事必须服务于最强证据。
+
+7. **标题反虚高与极简律（Heading Anti-Overclaiming & Concise Headings）**：
+   - **标题反虚高是去防御性写作的第一道防火墙**：审稿人对论文的第一印象直接来自目录与章节标题。若正文仅做基于配合比的碳排放与能耗情景核算，**严禁**将标题拔高为宏大的 *Life-cycle assessment (LCA)*，防止审稿人依 ISO 14040/14044 严苛标准（全生命周期采矿、运输、施工、运维、拆解全清单）开展毁灭性围剿；实事求是使用 **`Embodied carbon and energy`**（或 `Carbon and energy analysis`），严密咬合证据边界，封死攻击漏洞。
+   - **杜绝方法堆砌与冗长黑话**：小节标题采用 2–4 词极简材料学术风（如 `Prediction models`, `Model evaluation`, `Strength prediction`, `Flowability prediction`, `Mixture optimization`），方法章统一规范为 `3. Methods`。
+
+---
+
+## 二、 语言规则：彻底消灭自我削弱与 AI 腔调
+
+### 1. 严厉禁用的防御性“心虚”词汇库（Banned Vocabulary）
+| 禁用 AI / 心虚词汇 | 审查理由 | 推荐坚定工程表述 |
+| :--- | :--- | :--- |
+| **遗憾的是 (Unfortunately / Regrettably)** | 心理暗示结果很糟，直接给审稿人递刀子 | **直接客观陈述事实，不带情感偏见** |
+| **仅 / 仅仅 (Merely / Only)** | 主动贬低自身实验覆盖范围 | 明确给出具体区间或工况边界 |
+| **仍明显落后 (Still lags far behind)** | 主动替反方坐实方案无用 | **从计算成本、泛化性或不同工况权衡来解释** |
+| **效果有限 (Marginal improvement)** | 自认贡献平庸 | **指出该增益在工程临界点上的重要敏感性** |
+| **存在严重不足 / 需谨慎理解** | 自掘坟墓式的过度自我审查 | **直接交代明确适用边界（Operational Bounds）** |
+| **然而，我们未能...** | 审稿人还没问，自己先认输 | **直接聚焦本文已严密证明的核心范围** |
+
+### 2. “不说输”原则
+- 面对不占优的数据，严禁使用“弱于”、“性能下降”、“未能超过”。
+- **按以下优先级处置**：
+  1. 该负向结果是否必须展示？若非核心链条，直接从主文移除或移至附录；
+  2. 能否从工程目标差异（如牺牲 2% 精度换取 10 倍推理速度/无损测量）进行正向权衡（Trade-off）论述；
+  3. 收缩主张边界，避免无意义的正面对撞。
+
+---
+
+## 三、 实验组织规则（论证工具而非结果仓库）
+
+- **实验不是结果仓库，每个图表必须承担唯一论证职责**：
+  1. 证明核心机理或方法有效；
+  2. 证明优势来源于关键创新模块（消融验证）；
+  3. 证明方法在目标工程场景中具备不可替代的价值；
+  4. 排除最可能的竞争性物理假设。
+- 无法强化主线、容易分散审稿人注意力、或引出无关争议的实验：**删除、弱化、移动或重新设计**。
+
+---
+
+## 四、 核心段落结构与去 AI 化实操
+
+### 1. 摘要与引言（学术发布会开场）
+- 前五句话迅速建立四件事：
+  1. 一个具体、重要且未决的工程/物理难题；
+  2. 现有主流方法的关键缺陷（缺少机理、计算不可行、实测受限）；
+  3. 本文独特的核心构想与物理抓手；
+  4. 最有分量的定量结论与工程突破。
+- 绝不在贡献尚未站稳脚跟前，提前交代局限性。
+
+### 2. 结论段落（强效记忆点锚定）
+- **只强化记忆点**：本文攻克了什么、提出了什么机制、提供了什么严密证据、对行业有何指导价值。
+- **严禁在最后一段突然自我否定**（如“本方法仍有诸多缺陷，未来需要极大改进……”）。
+
+---
+
+## 五、 投递前自查清单（严禁递刀子）
+
+- [ ] 是否无意中扩大了本文需要承担的解释责任？
+- [ ] 章节标题是否做到了反虚高（严禁将配合比情景核算拔高为 LCA，改用 Embodied carbon and energy；方法章规范为 Methods，杜绝黑话与方法堆砌）？
+- [ ] 是否提出了一个原本审稿人根本没想到的苛刻问题？
+- [ ] 是否把某一极端工况的局部现象，描述成了整个方法的系统性缺陷？
+- [ ] 摘要前五句里，核心工程问题和独特解法是否已经清晰出现？
+- [ ] 是否使用了比现有数据更宽泛的自我贬低判断？
+- [ ] 全文是否消除了列表式（Listicle）AI 腔调，全部转换为连贯深入的学术长段落？
+
+---
+
+## 六、 Sepia 结构级去 AI 味双引擎联动规范 (Sepia De-AI Engine Integration)
+
+> [!IMPORTANT]
+> **底层驱动与理论支撑**：  
+> 本技能已深度集成前沿去 AI 味引擎 **Sepia**（基于 StoryScope 结构级去 AI 味体系，arXiv:2604.03136）。  
+> 实证表明：**AI 味的本质不在于个别表面词汇，而在于底层结构特征（如机械句式节奏、虚假逻辑连接、缺乏信息密度的平铺叙述）**。  
+> 当用户说 **“调用 ccc-skills 来去 AI 味”** 时，自动协同执行 **Anti-Defensive 战略防御清洗** 与 **Sepia 结构级深层重构**。
+
+### 1. Sepia 四阶手术刀操作协议 (Four Operations)
+根据论文当前状态与用户指令，智能路由调用 Sepia 的四大模式：
+- **`sepia-review`（诊断不修改）**：对文稿进行结构指纹与 AI 痕迹拉网式诊断，列出缺陷清单（包含填充连接词、机械对称句式、缺乏张力的平铺叙事），不改动原文。
+- **`sepia-refactor`（轻量原地手术）**：遵循 **74% 替换 / 18% 删除 / 8% 插入** 的专业编辑黄金法则。重点剔除 “Moreover”, “Furthermore”, “It is worth noting that”, “In summary” 等万能填充词，破除机械句长，保留原逻辑。
+- **`sepia-recreate`（彻底重构重建）**：提取原始核心论点、物理事实与数值证据后，彻底抛弃原有 AI 生成的句架，用纯正人类专家的呼吸节奏与紧凑句式从零重写。
+- **`sepia-write`（纯正人类语感全新创作）**：在新段落创作前直接注入学术工程场域规则，从根源杜绝 AI 模式化结构。
+
+### 2. 中英文双语语境深度重校准 (Bilingual Calibration)
+- **英文学术场域 (`style-pass.md` + `professional-pass.md`)**：
+  - 破除均一 22~26 词机械句长，执行“单刀直入定性短句 (8~12词) + 严谨机理复合长句 (28~35词)”的高低呼吸交替；
+  - 强制使用强动作动词（如 *accelerates, triggers, governs, induces* 代替 *leads to the occurrence of*）。
+- **中文学术与技术场域 (`references/languages/zh.md`)**：
+  - 彻底清除翻译腔与假逻辑词：“此外”、“值得注意的是”、“显而易见的是”、“综上所述”、“不可否认的是”；
+  - 消除主语缺失、过长无标点从句与伪工整排比句，恢复学术汉语“主谓分明、先事实后定性、短促有力”的质感。
 
-- the validity of the claim;
-- the interpretation of the evidence;
-- the scope of application;
-- the research design;
-- the reader's ability to use the result correctly.
-
-Write necessary limitations once, clearly and calmly. Place them in the appropriate section, usually methods, discussion, or limitations. Do not scatter them through abstracts, introductions, contribution paragraphs, topic sentences, conclusions, or executive summaries unless the limitation is essential to that exact sentence.
-
-## Detection Checklist
-
-Before finalizing a draft or revision, check for:
-
-- unnecessary disclaimers;
-- repeated statements of what the text does not claim;
-- excessive hedging;
-- caveats in high-impact positions;
-- paragraphs that start with limitations;
-- negative framing where positive framing would work;
-- explanations added only to prevent hypothetical misunderstanding;
-- self-undermining contribution statements;
-- unnecessary "not X but Y" structures;
-- redundant "however", "nevertheless", or "although" transitions.
-
-Revise any item that weakens the text without improving accuracy.
-
-## Rewrite Procedure
-
-1. Identify the function of the defensive sentence.
-
-Classify it as one of:
-
-- unnecessary disclaimer;
-- necessary scope condition;
-- real methodological limitation;
-- useful conceptual contrast;
-- evidence-based qualification;
-- redundant clarification.
-
-2. Delete unnecessary disclaimers.
-
-Remove any sentence that does not add evidence, scope, logic, conceptual precision, or necessary reader guidance.
-
-3. Convert defensive limitation into positive scope.
-
-Prefer:
-
-> The analysis focuses on urban governance cases from 2015 to 2023.
-
-Avoid:
-
-> We do not claim that these cases are representative of all urban governance contexts.
-
-4. Replace hedging with precision.
-
-Prefer:
-
-> The evidence indicates that X influences Y in these cases.
-
-Avoid:
-
-> This may suggest that X could potentially influence Y.
-
-If uncertainty is real, specify its source:
-
-> The available evidence supports this interpretation, although the design does not estimate population-level effects.
-
-5. Rebuild the paragraph around the main point.
-
-Ensure the paragraph has:
-
-- a clear topic sentence;
-- one main job;
-- a logical sequence;
-- no repeated caveats;
-- no apology-like framing;
-- a direct connection to the larger argument.
-
-## Writing Principles
-
-Lead with the claim. Start paragraphs with the point, not with a caveat.
-
-Use positive scope. State what the text examines, explains, tests, compares, or contributes.
-
-Strengthen with evidence, not apology. When a claim feels too broad, improve the concepts, evidence, causal logic, scope, or paragraph structure instead of adding protective caveats.
-
-Keep one paragraph, one job. Do not mix argument, caveat, apology, exception, and clarification in the same paragraph.
-
-Use contrast only when the contrast itself is part of the argument. Avoid reflexive "not X but Y", "rather than", "instead of", "to be clear", and "it should be noted that" structures.
-
-## Preferred Patterns
-
-Use patterns like:
-
-- "This paper examines..."
-- "This study shows..."
-- "The analysis focuses on..."
-- "The evidence indicates..."
-- "This design allows..."
-- "The results suggest..."
-- "The central contribution is..."
-- "This section explains..."
-- "The argument proceeds in three steps..."
-- "In this setting, X shapes Y by..."
-
-## Discouraged Patterns
-
-Avoid these unless they are necessary for accuracy:
-
-- "This paper does not claim..."
-- "We do not attempt to..."
-- "This is not to say that..."
-- "This should not be taken to mean..."
-- "The goal is not X but Y..."
-- "Rather than arguing X, this paper argues Y..."
-- "Although this study has limitations..."
-- "Of course, this does not fully capture..."
-- "It is worth noting that..."
-- "To be clear..."
-
-## Examples
-
-Defensive:
-
-> We do not claim that these cases are representative of all contexts.
-
-Stronger:
-
-> The cases show how the mechanism operates across three institutional settings.
-
-Defensive:
-
-> This paper is not intended to provide a comprehensive theory of platform governance, but rather to examine one specific mechanism.
-
-Stronger:
-
-> This paper identifies a mechanism through which platform governance reshapes participation.
-
-Defensive:
-
-> This does not mean that policy design alone determines implementation outcomes.
-
-Stronger:
-
-> Implementation outcomes depend on how policy design interacts with administrative capacity.
-
-Defensive:
-
-> While the sample is limited and cannot capture every variation, it still offers useful insights.
-
-Stronger:
-
-> The sample captures the variation most relevant to the study's theoretical question.
-
-Defensive:
-
-> We are not arguing that this model is superior in every situation.
-
-Stronger:
-
-> The model is most useful when the task requires interpretable comparisons across cases.
-
-## Final Pass
-
-Before producing the final answer, remove any sentence that exists mainly to protect against a hypothetical objection rather than to advance the text. Deliver text that is concise, direct, confident, logically organized, and free of unnecessary disclaimers.

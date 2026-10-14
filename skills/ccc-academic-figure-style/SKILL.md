@@ -70,13 +70,15 @@ HIGHLIGHT_YELLOW = "#FEC211"  # 专属特别高亮/趋势线/最优标注亮黄�
   1. What evidence the figure/table presents;
   2. The key metrics or trend transitions;
   3. The physical mechanism or engineering implication.
-- **Independent Narrative for Every Table and Figure (一表一文、一图一文，严禁图表合并笼统带过)**:
+- **Independent Narrative for Every Table and Figure (一表一文、一图一文，正文对应描述与深度理论分析)**:
   - **一图一叙事原则（One Figure, One Story）**：每个表格（Table）与每个图表（Figure）**必须各自拥有独立的专属深度分析段落**。**严禁出现“如 Fig. 4 与 Fig. 6 所示……”这种跨多图混合、泛泛而谈的粗糙写法**。
-  - 每张图在正文中必须遵循标准的**四步分析闭环**：
-    1. **引导看图**：明确引出图表（如“基于 Multi-Otsu 分割得到的水泥浆体三相组成随水化时间演化如图 4 所示……”）；
-    2. **定量读数**：从图表与各子图中提取具体数值、变化幅度、特征拐点（如“体积分数由 23 h 的 $23.13\%$ 显著降至 668 h 的 $13.01\%$”）；
-    3. **机理解释**：结合材料科学或物理机制深入阐释现象背后的原因（如“熟料溶解、C-S-H 凝胶沉淀导致毛细孔道充填细化”）；
-    4. **小结与过渡**：得出该图的核心结论，并自然引出下一阶段的分析或后续图表。
+  - **正文对应文字描述与理论机理分析（四步深度闭环）**：
+    针对图和表在正文中**必须有对应的文字描述**，完整覆盖以下四项内容：
+    1. **图（表）是什么图（表）**：明确引出图表（如“基于 Multi-Otsu 分割得到的水泥浆体三相组成随水化时间演化如图 4 所示……”），交代考察维度与测试工况；
+    2. **根据图（表）能够得到什么样的结果（或数据）**：从图表与各子图中提取具体数值、定量指标与变化幅度（如“体积分数由 23 h 的 $23.13\%$ 显著降至 668 h 的 $13.01\%$”）；
+    3. **这一结果能够反映（意味）出什么问题**：揭示该数值反映出的材料损伤、物理演变、趋势拐点或缺陷现象；
+    4. **恰当、深入和充分的理论机理分析**：针对实验结果和反映出的问题展开深入的力学/物理机理分析（如：深入分析出现这一结果的原因是什么，在分析力学或耐久性能时说明与前面的微观孔隙结构分析有何本质联系，等等）。
+    **总之：对图表必须有充分的说明以及深刻的理论分析，严禁将数据孤立留给读者在图表中寻找！**
   - **表格分析段落**：重点聚焦多维度分层数据（Subsets）、横向基线模型衬托对比（突出当前模型在恶劣工况下的断层优势）；
   - **图表分析段落**：必须紧密结合各子图编号（如 (a), (b), (c), (d)）逐面板展开细致拆解，详细说明瞬态时序演化轨迹、单步变化量捕捉、1:1 散点对角线拟合精度以及分层误差柱状图分布。
 - **Caption vs. Body Text Division of Labor (图题注自解释性与正文深度分析的严格职责分工)**:
@@ -124,9 +126,10 @@ HIGHLIGHT_YELLOW = "#FEC211"  # 专属特别高亮/趋势线/最优标注亮黄�
   - Subtle academic hatch patterns (`hatch='//'`, `\\\\`, `..`); **all bar hatch/fill lines must be white** (`hatch.color='white'`) so the pattern remains clean and consistent across CCC figures.
 - **Palette Coordination (同组配色一致)**:
   - Match bar border colors strictly to the line plots or scatter markers in adjacent panels within the same figure group.
-- **Universal Inward Tick Marks & Clean Boxed Spines (全图强制刻度线朝内、上/右边框刻度关闭规范)**:
-  - **刻度线朝内强制规则**：所有学术图表（包括折线、散点、柱状、雷达、SHAP、等高线等）的刻度线**必须严格全部朝内（`direction='in'`）**。Matplotlib 默认的朝外刻度（`out`）属于非专业草稿风格，必须全局覆写为朝内。
-  - **上框线与右框线刻度关闭（No Top and Right Ticks）**：四周矩形全围合边框必须保留（`top`, `bottom`, `left`, `right` 边框线宽 $0.8\sim 1.0\,\text{pt}$，颜色中性深灰或黑色 `#222222`），**但顶部和右侧边框一律关闭刻度线**（除非包含显式 `ax.twinx()` 双坐标轴）：
+- **Universal Inward Tick Marks & Clean Boxed Spines (坐标图标尺线向内，四边闭合，无数字的边框不要有标尺线)**:
+  - **核心铁律**：**坐标图标尺线向内，四边闭合，无数字的边框不要有标尺线！**
+  - **刻度线朝内强制规则**：所有学术图表（包括折线、散点、柱状、雷达、SHAP、等高线等）的标尺线/刻度线**必须严格全部朝内（`direction='in'`）**。Matplotlib 默认的朝外刻度（`out`）属于非专业草稿风格，必须全局覆写为朝内。
+  - **四边完全闭合与上/右边框无标尺线（No Top and Right Ticks）**：四周矩形全围合边框必须保留（`top`, `bottom`, `left`, `right` 边框线宽 $0.8\sim 1.0\,\text{pt}$，颜色中性深灰或黑色 `#222222`），**但无数字的边框（顶部和右侧边框）一律关闭标尺线/刻度线**（除非包含显式 `ax.twinx()` 双坐标轴）：
     ```python
     plt.rcParams['xtick.direction'] = 'in'
     plt.rcParams['ytick.direction'] = 'in'
@@ -482,3 +485,21 @@ HIGHLIGHT_YELLOW = "#FEC211"  # 专属特别高亮/趋势线/最优标注亮黄�
   # 输出: Fig_final_loss_ablation.png / .pdf (600 dpi)
   ```
 - **完整范例文件**：[`plot_loss_ablation_matrix_bars.py`](plot_loss_ablation_matrix_bars.py)（陈灿辉 Paper 3 冻融本构项目，已通过 Elsevier CCC 期刊出版验证）。
+
+### 7.7 Concrete Mix Inverse Design & LCA Inventory Breakdown (`plot_mix_lca_inventory_table.py`)
+- **适用场景**：
+  - 混凝土与复合材料智能逆向设计、多目标优化算法（NSGA-II/III、Pareto 候选配合比前沿筛选）；
+  - 生命周期评价（LCA）环境与经济目标权衡（隐含碳 Embodied Carbon、隐含能 Embodied Energy、综合成本 Total Cost）；
+  - 配合比组分清单贡献与敏感性深度归因分析（Constituent Inventory Contribution Breakdown）。
+- **设计标准**：
+  - **图表一体化对齐（Stacked Bar with Aligned Data Table）**：柱体呈现宏观总量与分段占比，表格呈现微观定量数值，彻底免除审稿人来回翻页查表的痛点。
+  - **CCC 科学色阶协同**：大宗胶凝材料（OPC）采用深海蓝稳底，细/粗骨料采用柔和浅冷色，微量高价/高碳组分（纤维 Fiber、减水剂 SP）采用绯红强色作为关键波动标注。
+  - **内嵌微型图例图标（Mini-legend Swatch Icons）**：数据表行标题内直接绘制该组分的填充色与纹理样式，消除图顶拥挤冗余的图例框。
+  - **出版级间距控制**：坐标轴刻度强制朝内（`direction='in'`），上右关闭刻度，精准计算表格与下轴坐标转换，预留充分垂直呼吸间距与子图底部居中编号 `(a)`, `(b)`。
+- **运行命令**：
+  ```bash
+  python plot_mix_lca_inventory_table.py --output mix_lca_inventory_standard
+  # 输出: mix_lca_inventory_standard.png (300 dpi) / .pdf (600 dpi 矢量图)
+  ```
+- **完整范例文件**：[`plot_mix_lca_inventory_table.py`](plot_mix_lca_inventory_table.py)。
+

@@ -61,7 +61,36 @@ published by Hlobil and Kumpov\'{a}~\cite{hlobil2023}.
 
 ---
 
-## 3. Highlights Requirements (投稿亮点强制规范)
+## 3. Abstract, Keywords & Cross-Section Data Consistency Standard (摘要、关键词与数据一致性铁律)
+
+### A. 摘要四要素结构与文风禁忌 (Abstract Core Standards)
+* **本质定位**：应是一篇能客观反映文章核心观点和创新观点的表意明确、实在的小短文。
+* **篇幅规格**：**300 字左右**（中文约 300 字；英文通常对应 200～250 词，简明扼要）。
+* **四大必备要素（无缝纯学术连续单段落）**：
+  1. **研究目的 (Objective/Purpose)**：直奔科学或工程问题本身，一句话交代针对的材料/计算瓶颈；
+  2. **研究方法 (Methodology)**：用直白朴实的工程/数学语言交代核心试验方案、模型构架与求解机制；
+  3. **主要结果 (Main Results)**：客观列出核心量化实测数据、精度指标与规律特征；
+  4. **研究结论 (Conclusions)**：提炼出材料微观机理、宏观服役性能提升或通用性工程价值。
+* **两大核心禁忌 (Red Lines)**：
+  - **切忌写成背景交代或“中心思想”**：背景最多一句话点破痛点，严禁通篇铺陈宏观背景，严禁在末尾喊口号或空泛升华“中心思想”；
+  - **不应含有编号**：摘要全文严禁出现任何编号形式（如 ①②③、(1)(2)(3)、1. 2. 3. 等）；
+  - **不应含有非公知公用的符号和术语**：严禁出现数学公式、生造符号代号或未定义的冷门缩写。
+
+### B. 关键词规范 (Keywords: 6–8 Items by Importance)
+* **数量规格**：严格控制在 **6～8 个**；
+* **内容质量**：应能准确反映文章的主要内容与技术核心；
+* **排序铁律**：**必须严格按照重要性顺序排列**，遵循学术逻辑递进层次：
+  `[核心研究对象/材料] -> [核心计算方法/算法/模型] -> [关键物理性能/力学损伤机制] -> [工程应用/服役场景]`。
+
+### C. 数据一致性与正文显式支撑铁律 (Cross-Section Data Provenance & Consistency Law)
+* **中英文摘要、正文与结论数据 100% 绝对一致**：在三处出现的所有数值、百分比、极值、误差指标必须完全咬合，严禁前后矛盾或口径不一；
+* **正文显式说明原则（严禁让读者去图表中寻找未在正文解释过的数据）**：
+  - **在摘要和结论中出现的所有关键数据与量化结论，必须在正文相应的小节文字中明确提到并展开说明过**；
+  - 绝对禁止“正文文字中只字不提，直接在摘要/结论中抛出某个惊艳的数值，让读者去图或者表中找对应的数据”。图表负责证据呈现，正文文字负责交代具体的数字与深度理论机理！
+
+---
+
+## 4. Highlights Requirements (投稿亮点强制规范)
 
 * **File Format**: A separate editable file named with "highlights" (e.g., `Highlights.txt` or `Highlights.docx`).
 * **Bullet Count**: Strictly **3 to 5 bullet points**.
@@ -72,29 +101,34 @@ published by Hlobil and Kumpov\'{a}~\cite{hlobil2023}.
 
 ---
 
-## 4. Figures & Subfigures Rules (图件排版与对称网格规范)
+## 5. Figures & Subfigures Rules (图件排版、坐标图制图与正文理论分析规范)
 
 ### A. Resolution & Vectors
 * **Color / Grayscale Photographs & XCT**: Minimum 300 DPI (TIFF or PNG).
 * **Line Art, Charts & Flowcharts**: Preferred vector formats (PDF, EPS) or minimum 1000 DPI.
 
-### B. 100% Sequential Monotonic Citation
+### B. 坐标图四边与标尺线铁律 (Universal Spine & Inward Tick Marks)
+* **标尺线严格朝内**：坐标图标尺线/刻度线**必须严格全部朝内（`direction='in'`）**，严禁朝外草稿风格；
+* **四边完全闭合**：四周矩形全围合边框必须保留（`top`, `bottom`, `left`, `right` 边框线宽 $0.8\sim 1.0\,\text{pt}$，颜色中性深灰或黑色 `#222222`）；
+* **无数字边框严禁标尺线**：**无数字的边框（顶部 top 与右侧 right，非双坐标轴时）绝对不要有标尺线/刻度线**（`plt.rcParams['xtick.top'] = False`, `plt.rcParams['ytick.right'] = False`），保持图面干净利落。
+
+### C. 100% Sequential Monotonic Citation
 * Every figure (`\label{fig:...}`) must be cited in the text before the next numbered figure is mentioned.
 * **Never cite Figure 9 before Figure 8**. If cross-referencing a later figure, refer to the section instead (e.g., *"detailed in Section 3.5"*).
 
-### B1. Anti-Consecutive Figures & Dedicated Analytical Loop (严禁连续无文图表堆叠与独立闭环分析)
+### D. 图表正文对应描述与深度理论机理分析闭环 (Dedicated Textual Description & Theoretical Analysis)
 * **Strict Anti-Consecutive Mandate (严禁连续大图无文堆叠)**:
-  - Never place two large figures (`\begin{figure}` / Word Figure Tables) or tables sequentially back-to-back without analytical paragraphs between them ("图堆图"属于顶刊排版大忌，严禁两图之间仅以空行、纯小节标题或机械过场套话隔开)。
-  - Never bunch multiple figures together with a generic summary sentence (严禁出现如 *"As shown in Figs. 8 to 10..."* 这种跨多图混合、泛泛而谈的粗糙写法)。
-* **Dedicated Analytical Loop (一图一论点，闭环深度分析)**:
-  - Every core figure/table must carry an **explicit, irreplaceable core claim** (每个核心图/表必须承担一个明确且不可替代的论点).
-  - Every core figure/table must be accompanied in adjacent text by a **four-step analytical loop**:
-    1. **Lead-in & Claim (明确论点)**: State the investigative dimension and hypothesis.
-    2. **Quantitative Result Description (定量结果描述)**: Report concrete metrics ($R^2$, RMSE, coverage PICP, interval width MPIW, extrema, inflections, diagonal alignment, error distribution).
-    3. **Physical / Mechanistic & Model Explanation (物理机理与模型解释)**: Deeply trace phenomena to material damage mechanics (e.g., $9\%$ ice-water phase-change expansion, pore hydrostatic/osmotic pressure, ITZ microcrack nucleation, shear band localization) or algorithmic dynamics (e.g., Copula dependence preservation, LSTM gated damage accumulation, loss boundary admissible constraints).
-    4. **Logical Transition (逻辑过渡)**: Synthesize the conclusion to naturally motivate the next question or subsequent figure.
+  - 绝对禁止两个独立的大型图或表连续出现而中间没有解释正文（"图堆图"属于顶刊排版大忌，严禁两图之间仅以空行、纯小节标题或机械过场套话隔开）；
+  - 严禁多图笼统合并带过（严禁出现如 *"As shown in Figs. 8 to 10..."* 这种跨多图混合、泛泛而谈的粗糙写法）。
+* **图表在正文中的对应文字描述与理论机理分析（四步深度闭环）**：
+  针对每个图和表，在正文相应位置必须有对应的文字描述，包含以下四项内容：
+  1. **图（表）是什么图（表）**：明确引出图表并说明其研究对象、工况或考察维度；
+  2. **根据图（表）能够得到什么样的结果（或数据）**：从图表中提取具体的定量指标、数值读数与变化幅度；
+  3. **这一结果能够反映（意味）出什么问题**：揭示其反映出的力学破坏、物理规律、退化趋势或缺陷现象；
+  4. **深入充分的理论机理分析**：针对实验结果和反映出的问题进行恰当、深入和充分的理论机理分析（如：深入分析出现这一结果的原因是什么；在分析宏观力学/耐久性能时，说明与前面的微观结构分析有何本质联系，等等）。
+  总之：正文必须对图表有充分的说明以及深刻的理论机理分析，严禁将数据孤立留给读者在图表中寻找！
 
-### C. Multi-Subfigure Rigid Symmetric Grid Standard
+### E. Multi-Subfigure Rigid Symmetric Grid Standard
 When constructing multi-row, multi-column subfigure matrices (e.g., 3D cube grids):
 1. **Pad all raw subfigure canvases** to identical dimensions $(W \times H)$ with white margins to ensure equal aspect ratios and cube centers.
 2. **Never rely on elastic `\hfill`** across rows with dividers, which causes vertical divider misalignment. Use rigid symmetric `\hspace`:
@@ -269,8 +303,9 @@ When authoring, revising, or refining manuscripts for *Cement and Concrete Compo
 
 When invoked to format or audit a manuscript for CCC, execute the following steps in sequence:
 
-1. **Step 1: Narrative & Jargon Audit**:
+1. **Step 1: Narrative, Jargon & Heading Audit**:
    - Verify the Three Core Narrative Principles: replace pretentious AI terms with plain engineering prose; ensure formulas serve concrete physics; verify civil-engineer-friendly titles and figure captions.
+   - Enforce Section 10 Concise Headings & Anti-Overclaiming: normalize `Methodology` to `Methods`; condense stacked headings to 2–4 concise words; prohibit naming mixture-level scenario footprint estimations as "LCA" (mandate `Embodied carbon and energy`).
 2. **Step 2: Technical Audit**: Run `audit_ccc_manuscript.py <paper.tex> <Highlights.txt>`.
 3. **Step 3: Line Numbers**: Inject `\usepackage{lineno}` and `\linenumbers` if missing.
 4. **Step 4: Citation Integrity**:
@@ -296,4 +331,43 @@ When invoked to format or audit a manuscript for CCC, execute the following step
 9. **Step 9: Verification**:
    - Compile twice with `pdflatex` (or the manuscript's required LaTeX engine) to guarantee zero undefined citations (`?`) and zero undefined references.
    - Run `audit_ccc_manuscript.py` to confirm `PASSED [OK]`.
+
+---
+
+## 10. Concise Headings & Anti-Overclaiming Standard (材料类章节标题极简风与反拔高实证准则)
+
+> [!IMPORTANT]
+> **专属触发词**：“**材料类论文标题精简**”、“**章节标题极简风**”或在自动化撰写/修改/精修论文各章节标题时自动无条件执行。
+> 论文面向土木、建筑材料与复合结构顶刊（CCC, CBM, CCR, MATDES）审稿人。审稿人高度关注材料性能本身与工程实用性，极度反感计算机/AI领域的冗长黑话标题；同时，严禁脱离实际工作开展宏大叙事（如将碳排放估算拔高为 LCA），防止招致审稿人的毁灭性反噬。
+
+### A. 三大命名核心铁律
+1. **绝不堆砌方法名称与冗长修饰词（2–4 词极简律）**：
+   - 彻底剔除虚浮的复合修饰语（如 *Task-specific predictive modeling framework*, *Prediction performance and literature-to-experiment adaptation* 等）。
+   - 小节标题直截了当表明讨论的材料物理量或模型环节（如 **`Prediction models`**, **`Model evaluation`**, **`Model performance`**, **`Strength prediction`**, **`Flowability prediction`**）。
+2. **严防“宏大叙事”引发审稿致命攻击（Strict Anti-Overclaiming & Defensive Invariance）**：
+   - **典型红线（第 5 章及类似工程配合比优选/情景核算）**：如果文章正文仅开展基于配合比的情景碳排放与能耗核算、配合比优化，**绝对不能**将标题定为宏大的 *“Life-cycle assessment (LCA)”* 或 *“Environmental footprint and life-cycle carbon-energy assessment”*！
+   - **审查机理**：一旦冠以 LCA，审稿人必以 ISO 14040/14044 严苛标准（全生命周期系统边界、开采、运输、施工、运营维护、拆解回收全清单）进行致命审查；而实事求是写成 **`Embodied carbon and energy`**（或 `Carbon and energy analysis`），不仅 100% 严丝合缝对齐正文数据，更让审稿人完全找不到挑剔边界的切入点。
+   - 同理，常规配合比筛选直截了当命名为 **`Mixture optimization`**，不虚夸为 *“Performance-oriented mixture screening”*。
+3. **方法章名称统一规范为 `3. Methods`**：
+   - 避免虚浮冗长的 `3. Methodology`，统一采用 Nature / Elsevier 顶刊标准的 **`3. Methods`**（或 `2. Materials and methods`）。
+
+### B. 经典章节标题极简映射基准表 (Canonical Heading Mapping Matrix)
+
+| 原繁复/堆砌/虚浮标题 (Banned) | 极简规范标题 (Mandatory) | 精简理由与审稿防御机制 |
+| :--- | :--- | :--- |
+| `Task-specific predictive modeling framework` | **`Prediction models`** | 剔除虚浮的 "Task-specific" 与 "framework"，直截交代预测模型体系 |
+| `Validation strategy for literature-assisted prediction` | **`Literature-assisted training and validation`** | 准确朴实表达文献数据驱动的训练与验证流程，避免空谈 "strategy" |
+| `Prediction reliability and material-variable interpretation` | **`Uncertainty and interpretation`** | 凝练涵盖不确定性量化与机理可解释性两大模块 |
+| `Evaluation metrics and cross-validation protocols` | **`Model evaluation`** | 2 个词概括所有评估指标与交叉验证协议 |
+| `Prediction performance and literature-to-experiment adaptation` | **`Model performance`** | 拒绝多重介词套娃，直观汇报预测表现 |
+| `Compressive strength prediction and literature adaptation` | **`Strength prediction`** | 聚焦材料力学核心指标（抗压强度），去掉多余方法修饰 |
+| `Fresh flowability prediction and literature-data utilization` | **`Flowability prediction`** | 聚焦材料工作性能核心指标（流动度/工作性） |
+| `Performance-oriented mixture screening` | **`Mixture optimization`** | 配合比优化通用标准学术术语，不生造概念 |
+| `Environmental footprint and life-cycle carbon-energy assessment` | **`Embodied carbon and energy`** | **严重红线**：情景估算严禁叫 LCA，改称隐含碳与能耗，实事求是且封死攻击漏洞 |
+| `Methodology` | **`Methods`** | 顶刊标准，精练自然，拒绝虚浮 |
+
+### C. 执行约束与排版保护原则
+- **保留原有标题样式与导航层级**：修改标题文字时，必须严格保留 Word 的标题样式（Heading 1, Heading 2, Heading 3）及 LaTeX 的层级结构，杜绝层级坍塌；
+- **排版零越界原则**：精简标题不得破坏段落对齐，修改后务必确认正文总页数未发生意外跳页、文字未出现越界或孤行。
+
 
