@@ -39,3 +39,14 @@ chats/
 test_*.html
 *_backup_*/
 
+# Local utility & sync scripts/data
+sync_chats_to_obsidian.py
+generate_diaries.py
+print_summary.py
+summary_utf8.py
+summary_view.txt
+full_summary_clean*.txt
+date_analysis.json
+*.zip
+tools/
+
