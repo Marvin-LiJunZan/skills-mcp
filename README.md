@@ -182,7 +182,25 @@ flowchart TD
 
 ## ⚡ 快速上手 / Quick Start
 
-### 1. 克隆本仓库
+### 💡 极速安装（推荐）：直接把下面这段话发给你的 AI 助手！
+
+如果你正在使用 **Claude Code、Google Antigravity、Cursor、Codex、Cline 或 Windsurf**，无需手动执行繁琐的终端命令，**直接复制以下 Prompt 发送给它**，AI 助手会自动完成克隆、软链接挂载与 MCP 服务配置：
+
+```markdown
+请帮我安装并配置开源科研技能与 MCP 仓库 [skills-mcp]：
+1. 请在本地合适路径克隆本仓库：
+   git clone https://github.com/Marvin-LiJunZan/skills-mcp.git
+   （若国内网络访问受限，请使用 Gitee 镜像：git clone https://gitee.com/LiJunZan/skills-mcp.git）
+2. 识别你当前所处的 AI 智能体环境（如 Claude Code 的 ~/.claude/skills/、Antigravity 的 ~/.gemini/config/skills/、或当前工作区的技能目录），将 skills-mcp/skills 目录中的常用科研/写作/绘图技能创建软链接（Windows Junction 或 Linux/macOS ln -s）或复制过去激活。
+3. 检查并在当前 Agent 的 MCP 配置文件中添加 skills-mcp/mcp/ 下的关键服务（如 semantic-scholar、abaqus 等）。
+4. 全部配置完成后，列出你已成功激活的 Skills 与 MCP 工具清单告诉我。
+```
+
+---
+
+### 🛠️ 手动安装流程（开发者自选）
+
+#### 1. 克隆本仓库
 ```bash
 # GitHub
 git clone https://github.com/Marvin-LiJunZan/skills-mcp.git
@@ -191,8 +209,8 @@ git clone https://github.com/Marvin-LiJunZan/skills-mcp.git
 git clone https://gitee.com/LiJunZan/skills-mcp.git
 ```
 
-### 2. 在 AI Agent 中直接使用 Skills
-现代 AI Agent（如 Claude Code、Antigravity、Codex、Cursor、OpenClaw）均原生支持 `SKILL.md` 规范：
+#### 2. 在 AI Agent 中直接使用 Skills
+现代 AI Agent 均原生支持 `SKILL.md` 规范：
 
 * **方式 A：通过 `find-skills` 动态安装 / 管理**
   ```bash
@@ -208,7 +226,7 @@ git clone https://gitee.com/LiJunZan/skills-mcp.git
   * **Claude Code**: 链接至 `~/.claude/skills/`
   * **Cursor**: 引用对应技能目录下的 `.md` 作为 Rules/Context。
 
-### 3. 配置与启动 MCP 服务
+#### 3. 配置与启动 MCP 服务
 以配置 `abaqus-mcp` 与 `semantic-scholar-mcp` 为例，在你的 Agent 配置文件（如 `claude_desktop_config.json` 或 Antigravity MCP 配置）中添加：
 
 ```json
@@ -216,11 +234,11 @@ git clone https://gitee.com/LiJunZan/skills-mcp.git
   "mcpServers": {
     "semantic-scholar": {
       "command": "python",
-      "args": ["C:/JunzanLi_project/skills_mcp/mcp/semantic-scholar-mcp/server.py"]
+      "args": ["<path-to-repo>/mcp/semantic-scholar-mcp/server.py"]
     },
     "abaqus": {
       "command": "python",
-      "args": ["C:/JunzanLi_project/skills_mcp/mcp/abaqus-mcp/server.py"]
+      "args": ["<path-to-repo>/mcp/abaqus-mcp/server.py"]
     }
   }
 }
@@ -286,6 +304,24 @@ It unifies **80+ specialized Agent Skills** and **10+ Model Context Protocol (MC
 ---
 
 ## 🚀 Quick Start Guide
+
+### 💡 One-Click Setup with your AI Assistant (Recommended)
+
+If you are using **Claude Code, Google Antigravity, Cursor, Codex, Cline, or Windsurf**, there is no need to manually run commands. Simply **copy and paste the prompt below to your AI assistant**:
+
+```markdown
+Please help me set up and configure the open-source [skills-mcp] research toolkit:
+1. Clone the repository to a suitable local directory:
+   git clone https://github.com/Marvin-LiJunZan/skills-mcp.git
+   (Or use the Gitee mirror if GitHub is slow: git clone https://gitee.com/LiJunZan/skills-mcp.git)
+2. Detect your current AI agent environment (e.g., ~/.claude/skills/ for Claude Code, ~/.gemini/config/skills/ for Antigravity, or the workspace skill directory), and symlink (or copy) the relevant skills from skills-mcp/skills to activate them.
+3. Inspect and configure the essential MCP servers under skills-mcp/mcp/ (such as semantic-scholar and abaqus) into your agent's MCP configuration file.
+4. Report back with the list of successfully activated Skills and MCP servers.
+```
+
+---
+
+### 🛠️ Manual Installation (Optional)
 
 ```bash
 # Clone the repository
