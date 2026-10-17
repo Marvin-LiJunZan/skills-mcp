@@ -12,7 +12,7 @@
 [![Gitee stars](https://gitee.com/LiJunZan/skills-mcp/badge/star.svg?theme=dark)](https://gitee.com/LiJunZan/skills-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Skills: 80+](https://img.shields.io/badge/Agent_Skills-80+-success.svg)](#-技能全景分类--skill-catalog)
-[![MCP Servers: 10+](https://img.shields.io/badge/MCP_Servers-10+-orange.svg)](#-mcp-服务矩阵--mcp-servers)
+[![MCP Servers: 11+](https://img.shields.io/badge/MCP_Servers-11+-orange.svg)](#-mcp-服务矩阵--mcp-servers)
 [![Supported Agents](https://img.shields.io/badge/Agents-Claude_Code_|_Antigravity_|_Codex_|_Cursor_|_OpenClaw-purple.svg)](#-支持的-agent-平台--supported-agents)
 
 **[English](#-english)** | **[简体中文](#-简体中文)**
@@ -110,7 +110,7 @@ flowchart TD
 
 ### 3. ✍️ 顶级学术论文写作、去“AI味”与高保真排版 (Manuscript & De-AI)
 * **`anti-defensive-writing`**: 破除学术“防御性写作”，消除过度免责、心虚词汇与流水账叙事，建立自信有力的顶刊成果发布会式论述。
-* **`human-writing` / `humanizer` / `humanizer-zh` / `sepia`**: 深度清洗 "delve into", "pave the way", "vital role" 等高频 AI 套话，还原地道英语与母语级学者表达。
+* **`human-writing` / `humanizer` / `humanizer-zh` / `sepia`**: 深度清洗 "delve into", "pave the way", "vital role" 等高频 AI 套话，还原地道英语与母语级学者表达；`humanizer-zh` 升级内置**“中文学术论文去 AI 味 15 阶实战规范（导师圈红字专项治理）”**，重点整治机械三连排比、空洞修辞、万能连接词与心虚被动句。
 * **`PaperSpine`**: 论文逻辑脊椎骨架构建，确保从 Abstract 到 Conclusion 全文因果闭环。
 * **`supervisor-skills`**:
   * `tech-paper-template`: 工科/计算机领域技术论文 6 步黄金思考模板。
@@ -175,6 +175,7 @@ flowchart TD
 | **`arxiv-mcp-server`** | stdio | 检索 ArXiv 每日最新论文，抓取元数据、分类、摘要与 PDF 链接 |
 | **`academic-search-mcp-server`** | FastMCP | 聚合 Crossref、OpenAlex 等学术检索端点 |
 | **`research-papers-mcp-server`** | stdio | 统一管理本地研究论文数据库与结构化文献缓存 |
+| **`windows-mcp`** | FastMCP / Windows API | CursorTouch 官方出品 (2M+ 用户)，赋予 Agent 操作系统级控制（桌面 UI 自动化识别、鼠标键盘模拟、窗口与任务生命周期管理、剪贴板与原生应用操控） |
 | **`colmap-4.0.3`** | CLI Wrapper | 执行高精度摄影测量三维特征提取、特征匹配与稀疏/稠密三维重建 |
 | **`mcp.science`** | API Gateway | 科学计算与生物/分子/化学结构分析工具网关 |
 
@@ -289,13 +290,13 @@ It unifies **80+ specialized Agent Skills** and **10+ Model Context Protocol (MC
 2. **Anti-Hallucination & Literature Verification**:
    - `cite-verify`, `reference-checker`, `ccc-literature-scout`, `Deep-Research-skills`, and `stanford-storm`.
 3. **Publication-Grade Writing & Humanization**:
-   - `anti-defensive-writing` (eliminating defensive tone), `human-writing`, `sepia`, `PaperSpine`, `nature-skills`, `latex-document-skill`, and `tex-to-word-converter`.
+   - `anti-defensive-writing` (eliminating defensive tone), `human-writing`, `humanizer-zh` (15-step academic de-AI guidelines), `sepia`, `PaperSpine`, `nature-skills`, `latex-document-skill`, and `tex-to-word-converter`.
 4. **Scientific Visualization**:
    - `academic-figure-skill`, `nature-figure`, and `ccc-academic-figure-style` (white-center bar charts, red-blue heatmaps, 3D volumetric consistency).
 5. **National Grants & Enterprise R&D**:
    - `nsfc-proposal` (2026 Chinese National Natural Science Foundation), `k2f` (NIH/NSF), `engineering-grant-reporting`, and `rd-attendance-salary-allocator`.
 6. **Industrial Simulation & Quantitative Finance**:
-   - `abaqus-mcp` (Finite Element Analysis automation), `colmap-4.0.3` (3D point cloud reconstruction), and `quant-trading-skills`.
+   - `abaqus-mcp` (Finite Element Analysis automation), `windows-mcp` (CursorTouch OS-level UI & desktop automation with 2M+ users), `colmap-4.0.3` (3D point cloud reconstruction), and `quant-trading-skills`.
 7. **Multimedia & Automated Video Editing**:
    - `baoyu-skills` (WeChat Official Account full-pipeline publishing, infographics, and cards) and `product-launch-video` / `ai-video-producer` (generating Remotion & TTS video tutorials directly from documentation).
 8. **Agent Collaboration & Meta-Skills**:
@@ -369,8 +370,9 @@ skills-mcp/
 │   ├── quant-trading-skills/   # 现代量化投资与多因子算法交易体系
 │   ├── tabular-ml-master/      # 表格机器学习生产级大师技能
 │   └── ...                     # 其余数十个细分领域技能
-├── mcp/                        # 10+ Model Context Protocol 服务实现
+├── mcp/                        # 11+ Model Context Protocol 服务实现
 │   ├── abaqus-mcp/             # Abaqus 脚本执行与有限元分析 MCP
+│   ├── windows-mcp/            # Windows 操作系统级 UI 与桌面控制 MCP
 │   ├── semantic-scholar-mcp/   # 权威学术图谱连接器
 │   ├── arxiv-mcp-server/       # ArXiv 论文抓取服务器
 │   ├── colmap-4.0.3/           # 三维摄影测量重建核心
